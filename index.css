@@ -1,0 +1,934 @@
+@charset "UTF-8";
+
+/* ===========================================================
+   TABEAMENTO DE SEÇÕES
+   - Geral: estilos compartilhados por todo o app (header, layout, botões, forms, tables, modais).
+   - TÁTICO: estilos direcionados ao formulário de registro, lista de solicitações e resumo.
+   - NOC: estilos para filtros NOC, tabela de grupos consolidados, canvas do chart e painel de supervisores.
+   - SUPERVISOR: estilos específicos da aba supervisor (grupos validados) e modal de atribuição.
+   - Assignment Panel: styles específicos do modal "Atribuir Colaboradores".
+   =========================================================== */
+
+/* Variables and Reset
+   Geral: variáveis de cores e reset básico (usado em todo o projeto) */
+:root {
+    --primary: #FF8C42;
+    --secondary: #6c757d;
+    --success: #28a745;
+    --danger: #dc3545;
+    --warning: #ffc107;
+    --info: #17a2b8;
+    --bg: #f5f5f5;
+    --card: #fff;
+    --text: #222;
+    --muted: #666;
+    --border: #ddd;
+    --shadow: rgba(0,0,0,0.08);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ===========================================================
+   GERAL — tipografia e background
+   (aplica-se a todas as abas: TÁTICO / NOC / SUPERVISOR)
+   =========================================================== */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+}
+
+/* ===========================================================
+   HEADER — cabeçalho fixo no topo (aplica-se globalmente)
+   - Contém marca, título e relogio
+   =========================================================== */
+.header {
+    background: var(--card);
+    padding: 1rem 1.5rem;
+    box-shadow: 0 2px 8px var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.logo {
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, var(--primary), #FF6B6B);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.brand-text .title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.brand-text .subtitle {
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+
+#clock {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-family: monospace;
+}
+
+/* ===========================================================
+   LAYOUT — container principal e tabs (Geral)
+   =========================================================== */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+/* Tabs (barra de navegação entre TÁTICO/NOC/SUPERVISOR/LOGS)
+   - usado em todas as abas, estilo visual e estado active */
+.tabs {
+    background: var(--card);
+    border-radius: 12px 12px 0 0;
+    padding: 0;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+.tabs button {
+    flex: 1;
+    min-width: 120px;
+    padding: 1rem;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.tabs button:hover {
+    background: rgba(255,140,66,0.1);
+}
+
+.tabs button.active {
+    color: var(--primary);
+}
+
+.tabs button.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--primary);
+}
+
+/* Tab Panes — cada aba do sistema (TÁTICO, NOC, SUPERVISOR, LOGS) */
+.tab-pane {
+    display: none;
+    padding: 1.5rem 0;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+/* Cards — componente de painel (usado por TÁTICO, NOC e SUPERVISOR) */
+.card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 8px var(--shadow);
+    margin-bottom: 1rem;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.card-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text);
+}
+
+/* ===========================================================
+   GRID LAYOUT — define coluna principal + sidebar
+   - TÁTICO e NOC usam esta estrutura (conteúdo principal + sidebar)
+   =========================================================== */
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 1.5rem;
+}
+
+/* ===========================================================
+   NOC LAYOUT ESPECÍFICO — melhorias na organização da sidebar
+   =========================================================== */
+
+/* Filtros NOC na sidebar - layout vertical organizado */
+.noc-filters-sidebar .form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+}
+
+.noc-filters-sidebar .form-group:last-child {
+    margin-bottom: 0;
+}
+
+.noc-filters-sidebar label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+}
+
+.noc-filters-sidebar select,
+.noc-filters-sidebar input {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.noc-filters-sidebar select:focus,
+.noc-filters-sidebar input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255,140,66,0.1);
+}
+
+/* Card de filtros da sidebar com melhor organização */
+.noc-sidebar-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 8px var(--shadow);
+    margin-bottom: 1rem;
+}
+
+.noc-sidebar-card h4 {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+/* Painel de supervisores melhorado */
+.supervisor-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.supervisor-filters-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.supervisor-filters-row .form-group {
+    margin-bottom: 0;
+}
+
+.supervisor-filters-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.supervisor-filters-actions .btn {
+    flex: 1;
+    min-width: 100px;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+}
+
+/* Lista de supervisores */
+.supervisor-list-container {
+    padding: 0.75rem;
+    border-top: 1px solid #eee;
+    background: #fbfbfb;
+}
+
+.supervisor-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.supervisor-list-header h5 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+}
+
+.supervisor-count {
+    font-size: 0.75rem;
+    color: var(--muted);
+    background: #e9ecef;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+}
+
+#supervisor_list {
+    max-height: 280px;
+    overflow-y: auto;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+    background: white;
+}
+
+/* Input de adicionar supervisor */
+.add-supervisor-section {
+    padding: 0.75rem;
+    border-top: 1px solid #eee;
+    background: #f8f9fa;
+    border-radius: 0 0 12px 12px;
+}
+
+.add-supervisor-input {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+}
+
+.add-supervisor-input input {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.add-supervisor-input .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+}
+
+/* Aprovador select melhorado */
+.aprovador-section {
+    padding: 1.25rem;
+}
+
+.aprovador-section h4 {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+}
+
+.aprovador-section select {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.aprovador-section select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255,140,66,0.1);
+}
+
+/* ===========================================================
+   FORMULÁRIOS — inputs e selects (principalmente para TÁTICO)
+   - O formulário de "Registrar Solicitação" usa estes estilos
+   =========================================================== */
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+textarea,
+select {
+    padding: 0.625rem 0.875rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255,140,66,0.1);
+}
+
+select[multiple] {
+    min-height: 120px;
+    max-height: 200px;
+}
+
+/* Observação: o 't_intervals' é um select[multiple] (TÁTICO) e já aproveita estes estilos */
+
+/* ===========================================================
+   BOTÕES — classes genéricas usadas em todas as abas
+   - Usados no TÁTICO (Adicionar, Publicar), NOC (Aplicar/Limpar/Validar),
+     SUPERVISOR (Aplicar filtros, Atribuir), e modals.
+   =========================================================== */
+.btn {
+    padding: 0.625rem 1.25rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--shadow);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-secondary {
+    background: var(--secondary);
+    color: white;
+}
+
+.btn-success {
+    background: var(--success);
+    color: white;
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-info {
+    background: var(--info);
+    color: white;
+}
+
+.btn-warning {
+    background: var(--warning);
+    color: white;
+}
+
+.btn-group {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* ===========================================================
+   TABELAS — usadas em TÁTICO (#table_tatico), NOC (#table_noc) e LOGS
+   =========================================================== */
+.table-container {
+    overflow-x: auto;
+    margin-top: 1rem;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    background: #f8f9fa;
+}
+
+th {
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text);
+    border-bottom: 2px solid var(--border);
+}
+
+td {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #eee;
+}
+
+tbody tr:hover {
+    background: #f8f9fa;
+}
+
+/* Badges — utilitário para status (usado em diversas tabelas/cards) */
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge-warning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.badge-success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge-info {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.badge-danger {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* ===========================================================
+   MODAL — usado para Import (preview) e Assignment (atribuição)
+   - Import Modal: #importModal
+   - Assign Modal: #assignModal
+   =========================================================== */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--card);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 1300px;
+    max-height: 90vh;
+    overflow: auto;
+    animation: slideIn 0.3s ease;
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-body {
+    padding: 1.5rem;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.modal-footer {
+    padding: 1.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===========================================================
+   ASSIGNMENT PANEL — estilos específicos do modal de Atribuição
+   (SUPERVISOR TAB — interação de atribuição)
+   =========================================================== */
+.assignment-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.interval-list {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.interval-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    border-bottom: 1px solid #eee;
+}
+
+.interval-item:hover {
+    background: #f8f9fa;
+}
+
+/* COLLAB LIST / SEARCH — dentro do modal de atribuição */
+.collaborator-search {
+    margin-bottom: 1rem;
+}
+
+.collaborator-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+/* ===========================================================
+   UTILITIES — classes utilitárias utilizadas por várias abas
+   =========================================================== */
+.text-muted {
+    color: var(--muted);
+}
+
+.text-small {
+    font-size: 0.85rem;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+
+/* ===========================================================
+   RESPONSIVO — adaptações para tablets e mobile
+   - Grid single-column (aplica a TÁTICO, NOC, SUPERVISOR em telas pequenas)
+   =========================================================== */
+@media (max-width: 1024px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .assignment-panel {
+        grid-template-columns: 1fr;
+    }
+    
+    /* NOC sidebar responsiva */
+    .supervisor-filters-actions {
+        flex-direction: column;
+    }
+    
+    .supervisor-filters-actions .btn {
+        flex: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .tabs {
+        overflow-x: scroll;
+    }
+    
+    .tabs button {
+        min-width: 100px;
+        font-size: 0.85rem;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .card {
+        padding: 1rem;
+    }
+    
+    .btn {
+        font-size: 0.85rem;
+        padding: 0.5rem 1rem;
+    }
+    
+    table {
+        font-size: 0.8rem;
+    }
+    
+    th, td {
+        padding: 0.5rem;
+    }
+    
+    /* NOC sidebar mobile */
+    .noc-sidebar-card {
+        padding: 1rem;
+    }
+    
+    .supervisor-filters {
+        padding: 0.75rem;
+    }
+    
+    .add-supervisor-input {
+        flex-direction: column;
+    }
+    
+    .add-supervisor-input .btn {
+        margin-top: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .brand-text .title {
+        font-size: 0.95rem;
+    }
+    
+    .modal-content {
+        border-radius: 0;
+        height: 100vh;
+        max-height: 100vh;
+    }
+    
+    /* Sidebar NOC em mobile - ajustes finos */
+    .supervisor-list-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
+    .supervisor-count {
+        align-self: flex-end;
+    }
+}
+
+/* ===========================================================
+   PRINT — remova elementos não relevantes ao imprimir
+   =========================================================== */
+@media print {
+    .header, .tabs, .btn, .btn-group {
+        display: none;
+    }
+    
+    .card {
+        break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid var(--border);
+    }
+}
+
+/* ===========================================================
+   LOADING / DETAILS / CHECKBOX / ALERT (pequenas utilidades)
+   - Loading spinner: pode ser usado em import / operações longas.
+   - details-row: linhas de detalhes na tabela NOC (expansíveis).
+   =========================================================== */
+
+/* Loading Spinner (padrão geral) */
+.spinner {
+    border: 3px solid rgba(0,0,0,0.1);
+    border-top: 3px solid var(--primary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 2rem auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Details Expansion — usado pela linha de detalhes da tabela NOC */
+.details-row {
+    background: #f8f9fa;
+    padding: 1rem;
+}
+
+.details-content {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    background: white;
+}
+
+/* Checkbox styling (aplicável em tabelas de seleção NOC, supervisor list etc.) */
+input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+/* Alert Box — utilitários para mensagens informativas */
+.alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.alert-info {
+    background: #cff4fc;
+    color: #055160;
+    border: 1px solid #b6effb;
+}
+
+.alert-warning {
+    background: #fff3cd;
+    color: #664d03;
+    border: 1px solid #ffecb5;
+}
+
+.alert-success {
+    background: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+}
+
+.alert-danger {
+    background: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+}
+
+/* ===== Dashboard specific ===== */
+.dashboard-container .dashboard-filters-card { margin-bottom: 1rem; }
+.he-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 1rem; }
+.he-card { background: #fff; padding: 1rem; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.he-card-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.he-card-value { font-size:1.25rem; font-weight:700; margin-bottom:6px; }
+.he-card-subtitle { font-size:0.85rem; color:var(--muted); }
+
+.charts-grid { display:grid; grid-template-columns: 1fr 1fr; gap:1rem; margin-top:1rem; }
+.chart-card.full-width { grid-column: 1 / -1; }
+
+.stats-grid { display:grid; grid-template-columns: 1fr 320px; gap:1rem; margin-top:1rem; }
+.stats-table { background:white; padding: 0.75rem; border-radius: 8px; }
+.stats-row { display:flex; justify-content:space-between; padding:0.5rem 0; border-bottom:1px dashed #f1f1f1; }
+.stats-row.header-row { font-weight:700; border-bottom:2px solid #eee; }
+.indicators-list { display:flex; flex-direction:column; gap:0.5rem; padding:0.5rem 0; }
+.indicator-item { display:flex; justify-content:space-between; align-items:center; padding:0.5rem 0; border-bottom:1px solid #f4f4f4; }
+.indicator-value.success { color:var(--success); font-weight:700; }
+.indicator-value.warning { color:var(--warning); font-weight:700; }
+.indicator-value.info { color:var(--info); font-weight:700; }
+
+/* small tweak: avoid double filter cards showing due to JS injection (safe-guard) */
+#noc_filter_row { display: none; } /* se você nunca usar a injeção, mantém invisível; remova se preferir usar injeção JS */
+
+
+/* ===========================================================
+   OBSERVAÇÕES FINAIS / MAPA RÁPIDO (para você)
+   - TÁTICO:
+     • Formulário: .form-row, select[multiple] (t_intervals), inputs #t_date #t_hc #t_motivo
+     • Tabela de solicitações: #table_tatico + .table-container
+     • Resumo: #sum_total / #sum_draft / #sum_published / #sum_validated (no sidebar)
+   - NOC:
+     • Filtros: #n_start #n_end #n_segment #n_operation (card de filtros)
+     • Grupos: #table_noc (estrutura e .details-row para os intervalos)
+     • Gráfico: #chart_noc (canvas dentro de uma .card)
+     • Supervisores: painel na sidebar — #noc_filter_* e #supervisor_list
+   - SUPERVISOR:
+     • Filtros da aba supervisor: #s_start #s_end #s_segment
+     • Grupos validados: #validated_groups
+     • Modal de atribuição: #assignModal, .assignment-panel, .interval-list, .collaborator-list
+   =========================================================== */

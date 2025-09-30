@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TABI - Sistema de Controle de Horas Extras</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js" defer></script>
+  <link rel="stylesheet" href="index.css">
+  <script src="index.js" defer></script>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-content">
+    <div class="brand">
+      <div class="logo">T</div>
+      <div class="brand-text">
+        <div class="title">TABI - Controle de Horas Extras</div>
+        <div class="subtitle">Sistema Integrado de Gestão</div>
+      </div>
+    </div>
+    <div id="clock"></div>
+  </div>
+</header>
+
+<!-- Main Container -->
+<div class="container">
+  <!-- Tabs Navigation -->
+  <div class="tabs">
+    <button class="active" data-tab="tatico">TÁTICO</button>
+    <button data-tab="noc">NOC</button>
+    <button data-tab="supervisor">SUPERVISOR</button>
+    <button data-tab="dashboard">DASHBOARD TABI</button>
+    <button data-tab="logs">LOGS</button>
+  </div>
+
+  <!-- TÁTICO Tab -->
+  <div id="tatico" class="tab-pane active">
+    <div class="grid">
+      <div>
+        <!-- Registro Form -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Registrar Solicitação</h3>
+            <span class="text-small text-muted">Cada HC = 10 minutos</span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="t_date">Data *</label>
+              <input type="date" id="t_date" required>
+            </div>
+            <div class="form-group">
+              <label for="t_dmm">DMM</label>
+              <input type="text" id="t_dmm" placeholder="Ex: 3°">
+            </div>
+
+            <!-- Operação e Segmento -->
+            <div class="form-group">
+              <label for="t_operation">Operação</label>
+              <select id="t_operation">
+                <option value="">Selecione...</option>
+                <option>VIVO</option>
+                <option>TIM</option>
+                <option>CLARO</option>
+                <option>OI</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="t_segment">Segmento</label>
+              <select id="t_segment">
+                <option value="">Selecione...</option>
+                <option>CONTROLE FRONT MOC</option>
+                <option>CONTROLE GRE BH</option>
+                <option>PRÉ PAGO ESE BH</option>
+                <option>LABS LAB</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" style="grid-column: span 2;">
+              <label for="t_intervals">Intervalos (10 min) - Múltipla seleção com Ctrl</label>
+              <select id="t_intervals" multiple></select>
+            </div>
+            <div class="form-group">
+              <label for="t_hc">HC por intervalo</label>
+              <input type="number" id="t_hc" min="1" value="1">
+            </div>
+            <div class="form-group">
+              <label for="t_motivo">Motivo</label>
+              <input type="text" id="t_motivo" placeholder="Motivo da solicitação">
+            </div>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-primary" type="button" onclick="taticoAdd()">➕ Adicionar</button>
+            <button class="btn btn-secondary" type="button" onclick="taticoClear()">🔄 Limpar</button>
+            <button class="btn btn-success" type="button" onclick="taticoPublish()">📤 Publicar Rascunhos</button>
+          </div>
+        </div>
+
+        <!-- Import/Export -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Importar/Exportar</h3>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-info" type="button" onclick="downloadTemplate()">📥 Template CSV</button>
+            <input type="file" id="fileImport" accept=".csv" style="display:none" onchange="handleImport(event)">
+            <button class="btn btn-primary" type="button" onclick="document.getElementById('fileImport').click()">📤 Importar CSV</button>
+            <button class="btn btn-secondary" type="button" onclick="exportTatico()">💾 Exportar Dados</button>
+          </div>
+        </div>
+
+        <!-- Records Table -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Solicitações Registradas</h3>
+          </div>
+          <div class="table-container">
+            <table id="table_tatico">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Operação</th>
+                  <th>Segmento</th>
+                  <th>DMM</th>
+                  <th>Intervalo</th>
+                  <th>HC</th>
+                  <th>HE (min)</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div>
+        <div class="card">
+          <h4>Resumo</h4>
+          <div class="mt-2">
+            <div class="text-small">Total: <strong id="sum_total">0</strong></div>
+            <div class="text-small">Rascunhos: <strong id="sum_draft">0</strong></div>
+            <div class="text-small">Publicados: <strong id="sum_published">0</strong></div>
+            <div class="text-small">Validados: <strong id="sum_validated">0</strong></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>Ajuda</h4>
+          <p class="text-small text-muted mt-2">
+            • 1 HC = 10 minutos<br>
+            • Selecione múltiplos intervalos com Ctrl<br>
+            • Publique para enviar ao NOC
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOC Tab -->
+  <div id="noc" class="tab-pane">
+    <div class="grid">
+      <div>
+        <!-- Filters -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Filtros</h3>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="n_start">Data Início</label>
+              <input type="date" id="n_start">
+            </div>
+            <div class="form-group">
+              <label for="n_end">Data Fim</label>
+              <input type="date" id="n_end">
+            </div>
+            <div class="form-group">
+              <label for="n_segment">Segmento</label>
+              <select id="n_segment">
+                <option value="">Todas</option>
+                <option>CONTROLE FRONT MOC</option>
+                <option>CONTROLE GRE BH</option>
+                <option>PRÉ PAGO ESE BH</option>
+                <option>LABS LAB</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="n_operation">Operação</label>
+              <select id="n_operation">
+                <option value="">Todos</option>
+                <option>VIVO</option>
+                <option>TIM</option>
+                <option>CLARO</option>
+                <option>OI</option>
+              </select>
+            </div>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" type="button" onclick="nocApplyFilter()">🔍 Aplicar</button>
+            <button class="btn btn-secondary" type="button" onclick="nocClearFilter()">🔄 Limpar</button>
+          </div>
+        </div>
+
+        <!-- Consolidated Groups -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Grupos Consolidados</h3>
+            <button class="btn btn-success" type="button" onclick="nocValidateSelected()">✅ Validar Selecionados</button>
+          </div>
+          <div class="table-container">
+            <table id="table_noc">
+              <thead>
+                <tr>
+                  <th><input type="checkbox" onchange="toggleAllGroups(this)"></th>
+                  <th>Data</th>
+                  <th>Operação</th>
+                  <th>Segmento</th>
+                  <th>HE (h)</th>
+                  <th>HC (un)</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Visualização Gráfica</h3>
+          </div>
+          <canvas id="chart_noc" style="max-height: 300px;"></canvas>
+        </div>
+      </div>
+
+      <!-- Sidebar NOC Reorganizada -->
+      <div>
+        <!-- Supervisores card reorganizado -->
+        <div class="noc-sidebar-card">
+          <h4>Supervisores</h4>
+
+          <!-- Filtros dos Supervisores (já presentes no HTML; o JS apenas popula) -->
+          <div class="supervisor-filters">
+            <div class="supervisor-filters-row">
+              <div class="form-group">
+                <label class="text-small">Operação</label>
+                <select id="noc_filter_operation">
+                  <option value="">Todas</option>
+                  <option>VIVO</option>
+                  <option>TIM</option>
+                  <option>CLARO</option>
+                  <option>OI</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="text-small">Segmento</label>
+                <select id="noc_filter_segment">
+                  <option value="">Todos</option>
+                  <option>CONTROLE FRONT MOC</option>
+                  <option>CONTROLE GRE BH</option>
+                  <option>PRÉ PAGO ESE BH</option>
+                  <option>LABS LAB</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="text-small">Gerente</label>
+                <select id="noc_filter_gerente"></select>
+              </div>
+
+              <div class="form-group">
+                <label class="text-small">Coordenador</label>
+                <select id="noc_filter_coordenador"></select>
+              </div>
+
+              <div class="form-group">
+                <label class="text-small">Supervisor</label>
+                <select id="noc_filter_supervisor"></select>
+              </div>
+
+              <div class="form-group">
+                <label class="text-small">Pesquisar</label>
+                <input id="noc_sup_search" placeholder="Nome ou matrícula" type="text">
+              </div>
+            </div>
+
+            <div class="supervisor-filters-actions">
+              <button class="btn btn-primary" id="noc_sup_apply" type="button">Aplicar Filtros</button>
+              <button class="btn btn-info" id="noc_sup_refresh" type="button">Atualizar Lista</button>
+              <button class="btn btn-secondary" id="noc_sup_clear" type="button">Limpar</button>
+            </div>
+          </div>
+
+          <!-- Lista de supervisores -->
+          <div class="supervisor-list-container">
+            <div class="supervisor-list-header">
+              <h5>Lista de Supervisores</h5>
+              <span class="supervisor-count">0 selecionados</span>
+            </div>
+            <div id="supervisor_list"></div>
+          </div>
+
+          <!-- Adicionar supervisor -->
+          <div class="add-supervisor-section">
+            <div class="add-supervisor-input">
+              <input type="text" id="sup_input" placeholder="Adicionar supervisor (nome)">
+              <button class="btn btn-primary" type="button" onclick="addSupervisor()">Adicionar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Aprovador -->
+        <div class="noc-sidebar-card">
+          <div class="aprovador-section">
+            <h4>Aprovador</h4>
+            <select id="aprovador_select">
+              <option value="">Selecione...</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUPERVISOR Tab -->
+  <div id="supervisor" class="tab-pane">
+    <!-- (mantive a estrutura que você já tinha; conteúdo populado pelo JS) -->
+    <div class="grid">
+      <div>
+        <!-- Filters -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Filtros</h3>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="s_start">Data Início</label>
+              <input type="date" id="s_start">
+            </div>
+            <div class="form-group">
+              <label for="s_end">Data Fim</label>
+              <input type="date" id="s_end">
+            </div>
+            <div class="form-group">
+              <label for="s_segment">Segmento</label>
+              <select id="s_segment">
+                <option value="">Todos</option>
+                <option>CONTROLE FRONT MOC</option>
+                <option>CONTROLE GRE BH</option>
+                <option>PRÉ PAGO ESE BH</option>
+                <option>LABS LAB</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-primary" type="button" onclick="supervisorFilter()">Aplicar</button>
+        </div>
+
+        <!-- Validated Groups -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Grupos Validados para Atribuição</h3>
+          </div>
+          <div id="validated_groups"></div>
+        </div>
+
+        <!-- Colaboradores com HE Atribuídas -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Colaboradores com HE Atribuídas</h3>
+            <span class="text-small text-muted">Período selecionado</span>
+          </div>
+          <div id="assigned_collaborators" class="assigned-collaborators-container"></div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div>
+        <div class="card">
+          <h4>Critérios de Elegibilidade</h4>
+          <div class="eligibility-criteria">
+            <div class="criteria-item">
+              <span class="criteria-icon">🔴</span>
+              <span class="criteria-text">Banco de horas negativo</span>
+            </div>
+            <div class="criteria-item">
+              <span class="criteria-icon">📊</span>
+              <span class="criteria-text">Produtividade adequada</span>
+            </div>
+            <div class="criteria-item">
+              <span class="criteria-icon">✅</span>
+              <span class="criteria-text">Ausência de restrições</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>Informações</h4>
+          <p class="text-small text-muted mt-2">
+            Selecione um grupo validado para atribuir colaboradores aos intervalos de hora extra.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>Reset Demo</h4>
+          <p class="text-small text-muted mt-2">
+            Limpa todos os dados e recria colaboradores e registros de demonstração.
+          </p>
+          <button class="btn btn-warning mt-2" type="button" onclick="resetDemo()">🔄 Reset Demo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD TABI Tab -->
+  <div id="dashboard" class="tab-pane">
+    <div class="dashboard-container">
+      <!-- Dashboard Filters -->
+      <div class="card dashboard-filters-card">
+        <div class="card-header">
+          <h3 class="card-title">Filtros do Dashboard</h3>
+          <span class="text-small text-muted">Configure os parâmetros para visualização</span>
+        </div>
+        <div class="dashboard-filter-row form-row">
+          <div class="form-group">
+            <label for="d_start">Data Início</label>
+            <input type="date" id="d_start" value="">
+          </div>
+          <div class="form-group">
+            <label for="d_end">Data Fim</label>
+            <input type="date" id="d_end" value="">
+          </div>
+          <div class="form-group">
+            <label for="d_operation">Operação</label>
+            <select id="d_operation">
+              <option value="">Todas</option>
+              <option>VIVO</option>
+              <option>TIM</option>
+              <option>CLARO</option>
+              <option>OI</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="d_segment">Segmento</label>
+            <select id="d_segment">
+              <option value="">Todos</option>
+              <option>CONTROLE FRONT MOC</option>
+              <option>CONTROLE GRE BH</option>
+              <option>PRÉ PAGO ESE BH</option>
+              <option>LABS LAB</option>
+            </select>
+          </div>
+          <div class="form-group filter-actions">
+            <button class="btn btn-primary" type="button" onclick="applyDashboardFilter()">🔍 Aplicar Filtros</button>
+            <button class="btn btn-secondary" type="button" onclick="clearDashboardFilter()">🔄 Limpar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard Content (initially hidden) -->
+      <div id="dashboard-content" class="dashboard-content" style="display:none;">
+        <!-- HE Overview Cards -->
+        <div class="he-overview-section card">
+          <h3 class="section-title">Visão Geral das Horas Extras</h3>
+          <div class="he-cards-grid">
+            <div class="he-card he-planejada">
+              <div class="he-card-header">
+                <span class="he-card-icon">📋</span>
+                <span class="he-card-title">HE Planejada</span>
+              </div>
+              <div class="he-card-value">145h 30min</div>
+              <div class="he-card-subtitle">Total solicitado pelo Tático</div>
+            </div>
+
+            <div class="he-card he-distribuida">
+              <div class="he-card-header">
+                <span class="he-card-icon">📤</span>
+                <span class="he-card-title">HE Distribuída</span>
+              </div>
+              <div class="he-card-value">132h 10min</div>
+              <div class="he-card-subtitle">Validada pelo NOC</div>
+            </div>
+
+            <div class="he-card he-atribuida">
+              <div class="he-card-header">
+                <span class="he-card-icon">👥</span>
+                <span class="he-card-title">HE Atribuída</span>
+              </div>
+              <div class="he-card-value">98h 45min</div>
+              <div class="he-card-subtitle">Atribuída pelo Supervisor</div>
+            </div>
+
+            <div class="he-card he-realizada">
+              <div class="he-card-header">
+                <span class="he-card-icon">✅</span>
+                <span class="he-card-title">HE Realizada</span>
+              </div>
+              <div class="he-card-value">87h 20min</div>
+              <div class="he-card-subtitle">Executada pelos colaboradores</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Section (mockup canvases) -->
+        <div class="charts-section">
+          <div class="charts-grid">
+            <div class="card chart-card">
+              <div class="card-header"><h3 class="card-title">HE por Segmento</h3></div>
+              <div class="chart-container"><canvas id="chart_he_segmento" style="max-height: 300px;"></canvas></div>
+            </div>
+
+            <div class="card chart-card">
+              <div class="card-header"><h3 class="card-title">Picos de Chamadas por Horário</h3></div>
+              <div class="chart-container"><canvas id="chart_picos_chamadas" style="max-height: 300px;"></canvas></div>
+            </div>
+
+            <div class="card chart-card full-width">
+              <div class="card-header"><h3 class="card-title">Evolução das HE - Últimos 7 dias</h3></div>
+              <div class="chart-container"><canvas id="chart_evolucao_diaria" style="max-height: 400px;"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Tables -->
+        <div class="stats-section card">
+          <div class="stats-grid">
+            <div class="stats-card">
+              <div class="card-header"><h3 class="card-title">Por Operação</h3></div>
+              <div class="stats-table">
+                <div class="stats-row header-row">
+                  <span>Operação</span><span>Planejada</span><span>Distribuída</span><span>Atribuída</span><span>Realizada</span>
+                </div>
+                <div class="stats-row"><span class="operation-name">VIVO</span><span>150h</span><span>42h 10min</span><span>38h 45min</span><span>35h 20min</span></div>
+                <div class="stats-row"><span class="operation-name">TIM</span><span>110h 20min</span><span>35h 30min</span><span>32h 15min</span><span>29h 40min</span></div>
+                <div class="stats-row"><span class="operation-name">CLARO</span><span>90h</span><span>38h 50min</span><span>35h 20min</span><span>32h 10min</span></div>
+                <div class="stats-row"><span class="operation-name">OI</span><span>80h 25min</span><span>15h 40min</span><span>12h 25min</span><span>10h 10min</span></div>
+              </div>
+            </div>
+
+            <div class="stats-card">
+              <div class="card-header"><h3 class="card-title">Indicadores</h3></div>
+              <div class="indicators-list">
+                <div class="indicator-item"><div class="indicator-label">Taxa de Distribuição</div><div class="indicator-value success">91%</div></div>
+                <div class="indicator-item"><div class="indicator-label">Taxa de Atribuição</div><div class="indicator-value warning">75%</div></div>
+                <div class="indicator-item"><div class="indicator-label">Taxa de Realização</div><div class="indicator-value success">88%</div></div>
+                <div class="indicator-item"><div class="indicator-label">Eficiência Geral</div><div class="indicator-value info">60%</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state (shown until Apply Filters is clicked) -->
+      <div id="dashboard-empty" class="dashboard-empty card" style="text-align:center; padding:2rem;">
+        <div class="empty-icon" style="font-size:40px;">📊</div>
+        <h3>Configure os filtros para visualizar o dashboard</h3>
+        <p class="text-small text-muted">Selecione o período, operação e segmento desejados e clique em "Aplicar Filtros".</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGS Tab -->
+  <div id="logs" class="tab-pane">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Logs de Auditoria</h3>
+        <button class="btn btn-danger" type="button" onclick="clearLogs()">🗑️ Limpar Logs</button>
+      </div>
+      <div class="table-container">
+        <table id="table_logs">
+          <thead>
+            <tr>
+              <th>Data/Hora</th>
+              <th>Usuário</th>
+              <th>Ação</th>
+              <th>Detalhes</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div id="importModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Preview da Importação</h3>
+      <button class="btn btn-secondary" type="button" onclick="closeImportModal()">✖</button>
+    </div>
+    <div class="modal-body">
+      <div id="import_preview"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" type="button" onclick="closeImportModal()">Cancelar</button>
+      <button class="btn btn-primary" type="button" onclick="confirmImport()">Confirmar Importação</button>
+    </div>
+  </div>
+</div>
+
+<!-- Assignment Modal -->
+<div id="assignModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Atribuir Colaboradores</h3>
+      <button class="btn btn-secondary" type="button" onclick="closeAssignModal()">✖</button>
+    </div>
+
+    <!-- Summary placeholders will be inserted dynamically -->
+    <div id="assign_summary" style="padding:0 1.5rem 0.5rem 1.5rem;font-weight:700;text-transform:uppercase"></div>
+
+    <div class="modal-body">
+      <div id="assign_content"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" type="button" onclick="closeAssignModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hierarchy Modal -->
+<div id="hierarchyModal" class="modal">
+  <div class="modal-content hierarchy-modal-content">
+    <div class="modal-header">
+      <h3>Hierarquia do Colaborador</h3>
+      <button class="btn btn-secondary" type="button" onclick="closeHierarchyModal()">✖</button>
+    </div>
+    <div class="modal-body">
+      <div id="hierarchy_content"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" type="button" onclick="closeHierarchyModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
