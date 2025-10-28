@@ -29,20 +29,60 @@
     </div>
   </header>
 
-  <main class="container" style="text-align:center">
-    <div class="card" style="max-width:900px;margin:2rem auto">
-      <h2>Páginas</h2>
-      <p>Escolha a área que deseja abrir:</p>
-      <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;margin-top:1rem">
-        <a class="btn btn-primary" href="merged.html">PLANEJAMENTO</a>
-        <a class="btn btn-primary" href="supervisor.html">SUPERVISOR</a>
-        <a class="btn btn-primary" href="dashboard.html">DASHBOARD</a>
+  <main>
+    <section class="hero">
+      <div class="container hero-content">
+        <div class="hero-copy">
+          <span class="eyebrow">Bem-vindo ao TABI</span>
+          <h1>Controle estratégico de horas extras com uma experiência moderna.</h1>
+          <p>
+            Organize as rotinas com mais clareza e acompanhe os indicadores das equipes
+            em uma interface leve, responsiva e alinhada à identidade laranja do TABI.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="dashboard.html">Ver dashboard</a>
+            <a class="btn btn-secondary" href="merged.html">Planejar demandas</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <h2>Destaques rápidos</h2>
+          <ul>
+            <li><strong>Painéis intuitivos</strong> para decisões ágeis.</li>
+            <li><strong>Planejamento centralizado</strong> em um só lugar.</li>
+            <li><strong>Supervisão facilitada</strong> para cada líder.</li>
+          </ul>
+        </div>
       </div>
+    </section>
 
-      <hr style="margin:1.25rem 0">
+    <section class="container navigation">
+      <header class="section-header">
+        <span class="eyebrow">Explore</span>
+        <h2>Escolha a área que deseja abrir</h2>
+        <p>Acesse rapidamente as páginas principais do ecossistema TABI.</p>
+      </header>
 
-    </div>
-    </div>
+      <div class="nav-grid">
+        <a class="nav-card" href="merged.html">
+          <div class="icon">📅</div>
+          <h3>Planejamento</h3>
+          <p>Alinhe cronogramas, distribua equipes e acompanhe prioridades.</p>
+          <span class="cta">Acessar</span>
+        </a>
+        <a class="nav-card" href="supervisor.html">
+          <div class="icon">🧭</div>
+          <h3>Supervisor</h3>
+          <p>Monitore solicitações, aprove processos e acompanhe resultados.</p>
+          <span class="cta">Acessar</span>
+        </a>
+        <a class="nav-card" href="dashboard.html">
+          <div class="icon">📊</div>
+          <h3>Dashboard</h3>
+          <p>Visualize métricas consolidadas em tempo real para decisões melhores.</p>
+          <span class="cta">Acessar</span>
+        </a>
+      </div>
+    </section>
   </main>
 
   <script type="module">
