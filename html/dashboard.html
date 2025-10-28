@@ -22,9 +22,23 @@
     </div>
   </header>
 
-  <main class="container">
+  <main class="container dashboard-layout">
+    <section class="card gradient-card page-intro">
+      <div class="intro-content">
+        <div>
+          <h2>Visão Integrada de Horas Extras</h2>
+          <p>Conecte planejamento e supervisão para antecipar decisões sobre liberação de HE, cobertura de turnos e performance das operações.</p>
+        </div>
+        <div class="intro-metric">
+          <span class="intro-label">Meta semanal planejada</span>
+          <strong>12.480 min</strong>
+          <small>Planejamento | Atualizado 08h00</small>
+        </div>
+      </div>
+    </section>
+
     <!-- Filtros -->
-    <div class="card">
+    <div class="card filter-card">
       <div class="card-header">
         <h3 class="card-title">Filtros do Dashboard</h3>
       </div>
@@ -65,100 +79,300 @@
     </div>
 
     <!-- Conteúdo Principal -->
-    <div id="dashboard-content" style="display:none">
-      <!-- KPIs -->
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <div class="kpi-icon">⏱️</div>
-          <div class="kpi-content">
-            <div class="kpi-value" id="kpi-total-he">0h</div>
-            <div class="kpi-label">HE Total Planejada</div>
+    <div id="dashboard-content" class="dashboard-shell" style="display:none">
+      <div class="layout-grid">
+        <section class="layout-main">
+          <div class="card executive-brief">
+            <div class="card-header">
+              <h3>Resumo Integrado Planejamento x Supervisão</h3>
+              <span class="badge badge-positive">Atualizado em tempo real</span>
+            </div>
+            <div class="brief-grid">
+              <div class="brief-item">
+                <span class="brief-label">Planejado no período</span>
+                <strong id="brief-planejado">0h</strong>
+                <small>Origem: Planejamento Operacional</small>
+              </div>
+              <div class="brief-item">
+                <span class="brief-label">Liberado pela supervisão</span>
+                <strong id="brief-liberado">0h</strong>
+                <small>Distribuído na aba do Supervisor</small>
+              </div>
+              <div class="brief-item accent">
+                <span class="brief-label">Gap operacional</span>
+                <strong id="brief-gap">0h</strong>
+                <small>HE ainda não coberta</small>
+              </div>
+              <div class="brief-item neutral">
+                <span class="brief-label">Colaboradores ativos</span>
+                <strong id="brief-colaboradores">0</strong>
+                <small>Times envolvidos em HE</small>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon">👥</div>
-          <div class="kpi-content">
-            <div class="kpi-value" id="kpi-colaboradores">0</div>
-            <div class="kpi-label">Colaboradores com HE</div>
-          </div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon">✅</div>
-          <div class="kpi-content">
-            <div class="kpi-value" id="kpi-taxa-conversao">0%</div>
-            <div class="kpi-label">Taxa de Conversão</div>
-          </div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon">📈</div>
-          <div class="kpi-content">
-            <div class="kpi-value" id="kpi-efficiency">0%</div>
-            <div class="kpi-label">Eficiência Operacional</div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Gráficos -->
-      <div class="charts-grid">
-        <div class="chart-card full-width">
-          <div class="chart-header">
-            <h3>Distribuição de HE por Segmento</h3>
+          <!-- KPIs -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-icon">⏱️</div>
+              <div class="kpi-content">
+                <div class="kpi-value" id="kpi-total-he">0h</div>
+                <div class="kpi-label">HE Total Planejada</div>
+                <div class="kpi-meta">
+                  <span class="kpi-trend positive">+6% vs semana anterior</span>
+                  <span class="kpi-subtext">Planejamento oficial</span>
+                </div>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon">👥</div>
+              <div class="kpi-content">
+                <div class="kpi-value" id="kpi-colaboradores">0</div>
+                <div class="kpi-label">Colaboradores com HE</div>
+                <div class="kpi-meta">
+                  <span class="kpi-trend neutral">Equipe distribuída</span>
+                  <span class="kpi-subtext">Supervisão em acompanhamento</span>
+                </div>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon">✅</div>
+              <div class="kpi-content">
+                <div class="kpi-value" id="kpi-taxa-conversao">0%</div>
+                <div class="kpi-label">Taxa de Conversão</div>
+                <div class="kpi-meta">
+                  <span class="kpi-trend positive">Meta: 92%</span>
+                  <span class="kpi-subtext">Planejado x Liberado</span>
+                </div>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon">📈</div>
+              <div class="kpi-content">
+                <div class="kpi-value" id="kpi-efficiency">0%</div>
+                <div class="kpi-label">Eficiência Operacional</div>
+                <div class="kpi-meta">
+                  <span class="kpi-trend positive">Alavanca de produtividade</span>
+                  <span class="kpi-subtext">Dados do Supervisor</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="chart-container">
-            <canvas id="chart_he_segmento"></canvas>
-          </div>
-        </div>
 
-        <div class="chart-card">
-          <div class="chart-header">
-            <h3>Evolução Diária - HE</h3>
+          <div class="card insight-group">
+            <div class="card-header">
+              <h3>Insights Rápidos</h3>
+              <span class="badge badge-neutral">Consolidados 24h</span>
+            </div>
+            <div class="insights-grid">
+              <article class="insight-card">
+                <header class="insight-header">
+                  <span class="insight-icon">🧭</span>
+                  <div>
+                    <h4>Prioridades do Planejamento</h4>
+                    <small>Distribuição oficial do período</small>
+                  </div>
+                </header>
+                <div class="insight-body">
+                  <ul class="trend-list">
+                    <li class="trend-item">
+                      <strong>Turno Manhã</strong>
+                      <span class="trend-meta">42% das horas semanais</span>
+                    </li>
+                    <li class="trend-item">
+                      <strong>Operação VIVO</strong>
+                      <span class="trend-meta">+280 min em relação ao plano</span>
+                    </li>
+                    <li class="trend-item">
+                      <strong>Backoffice TIM</strong>
+                      <span class="trend-meta">Reserva de contingência ativa</span>
+                    </li>
+                  </ul>
+                </div>
+              </article>
+              <article class="insight-card highlight">
+                <header class="insight-header">
+                  <span class="insight-icon">🎯</span>
+                  <div>
+                    <h4>Atuação do Supervisor</h4>
+                    <small>Dados consolidados da aba Supervisor</small>
+                  </div>
+                </header>
+                <div class="insight-body">
+                  <p><strong id="insight-liberado">0h</strong> liberadas nas últimas 24h, com prioridade para <span class="highlight-text">CONTROLE FRONT MOC</span> e reforço do plantão noturno.</p>
+                  <p>Escala ajustada para absorver <strong id="insight-gap">0h</strong> remanescentes sem comprometer o SLA.</p>
+                </div>
+                <footer class="insight-footer">
+                  <span class="badge badge-positive">Sem alertas críticos</span>
+                  <span class="badge badge-accent">Monitorar adesão noturna</span>
+                </footer>
+              </article>
+            </div>
           </div>
-          <div class="chart-container">
-            <canvas id="chart_evolucao_diaria"></canvas>
-          </div>
-        </div>
 
-        <div class="chart-card">
-          <div class="chart-header">
-            <h3>Picos de Chamadas por Turno</h3>
-          </div>
-          <div class="chart-container">
-            <canvas id="chart_picos_chamadas"></canvas>
-          </div>
-        </div>
+          <!-- Gráficos -->
+          <div class="charts-grid">
+            <div class="chart-card full-width">
+              <div class="chart-header">
+                <h3>Distribuição de HE por Segmento</h3>
+              </div>
+              <div class="chart-container">
+                <canvas id="chart_he_segmento"></canvas>
+              </div>
+            </div>
 
-        <div class="chart-card">
-          <div class="chart-header">
-            <h3>Status de Atribuição</h3>
-          </div>
-          <div class="chart-container">
-            <canvas id="chart_status_atribuicao"></canvas>
-          </div>
-        </div>
-      </div>
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3>Evolução Diária - HE</h3>
+              </div>
+              <div class="chart-container">
+                <canvas id="chart_evolucao_diaria"></canvas>
+              </div>
+            </div>
 
-      <!-- Tabela -->
-      <div class="card">
-        <div class="card-header">
-          <h3>Detalhamento por Colaborador</h3>
-        </div>
-        <div class="table-container">
-          <table class="data-table" id="table-detalhes">
-            <thead>
-              <tr>
-                <th>Colaborador</th>
-                <th>Matrícula</th>
-                <th>HE Atribuída</th>
-                <th>HE Realizada</th>
-                <th>Diferença</th>
-                <th>Eficiência</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="table-detalhes-body">
-            </tbody>
-          </table>
-        </div>
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3>Picos de Chamadas por Turno</h3>
+              </div>
+              <div class="chart-container">
+                <canvas id="chart_picos_chamadas"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3>Status de Atribuição</h3>
+              </div>
+              <div class="chart-container">
+                <canvas id="chart_status_atribuicao"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabela -->
+          <div class="card table-card">
+            <div class="card-header">
+              <h3>Detalhamento por Colaborador</h3>
+              <span class="badge badge-neutral">Ordenado por HE realizada</span>
+            </div>
+            <div class="table-container">
+              <table class="data-table" id="table-detalhes">
+                <thead>
+                  <tr>
+                    <th>Colaborador</th>
+                    <th>Matrícula</th>
+                    <th>HE Atribuída</th>
+                    <th>HE Realizada</th>
+                    <th>Diferença</th>
+                    <th>Eficiência</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="table-detalhes-body">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <aside class="layout-sidebar">
+          <div class="sidebar-card gradient-card">
+            <div class="sidebar-header">
+              <h3>Radar Operacional</h3>
+              <span class="badge badge-accent">Live</span>
+            </div>
+            <div class="progress-group">
+              <div class="progress-item">
+                <div class="progress-label">
+                  <span>Conversão do Planejamento</span>
+                  <strong id="sidebar-conversao">0%</strong>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-value" id="progress-conversao"></div>
+                </div>
+              </div>
+              <div class="progress-item">
+                <div class="progress-label">
+                  <span>Eficiência Supervisão</span>
+                  <strong id="sidebar-eficiencia">0%</strong>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-value" id="progress-eficiencia"></div>
+                </div>
+              </div>
+              <div class="progress-item">
+                <div class="progress-label">
+                  <span>Gap a Cobrir</span>
+                  <strong id="sidebar-gap">0h</strong>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-value" id="progress-gap"></div>
+                </div>
+              </div>
+            </div>
+            <ul class="sidebar-stats">
+              <li>
+                <span>HE Planejada</span>
+                <strong id="sidebar-he-planejada">0h</strong>
+              </li>
+              <li>
+                <span>HE Liberada</span>
+                <strong id="sidebar-he-liberada">0h</strong>
+              </li>
+              <li>
+                <span>HE Realizada</span>
+                <strong id="sidebar-he-realizada">0h</strong>
+              </li>
+            </ul>
+          </div>
+
+          <div class="sidebar-card">
+            <div class="sidebar-header">
+              <h3>Alertas da Supervisão</h3>
+              <span class="badge badge-warning">2 recomendações</span>
+            </div>
+            <ul class="alert-list">
+              <li>
+                <span class="alert-title">Conferir adesão do turno da noite</span>
+                <small>Monitorar aderência dos últimos 3 dias</small>
+              </li>
+              <li>
+                <span class="alert-title">Liberar reforço para Backoffice</span>
+                <small>Gatilho automático após 22h</small>
+              </li>
+            </ul>
+          </div>
+
+          <div class="sidebar-card">
+            <div class="sidebar-header">
+              <h3>Escala em Destaque</h3>
+              <span class="badge badge-neutral">Próximas 12h</span>
+            </div>
+            <ul class="schedule-list">
+              <li>
+                <div>
+                  <strong>CONTROLE FRONT MOC</strong>
+                  <small>Supervisor: Ana Souza</small>
+                </div>
+                <span class="badge badge-positive">Cobertura OK</span>
+              </li>
+              <li>
+                <div>
+                  <strong>PRÉ PAGO ESE BH</strong>
+                  <small>Supervisor: Lucas Prado</small>
+                </div>
+                <span class="badge badge-warning">Reforço solicitado</span>
+              </li>
+              <li>
+                <div>
+                  <strong>LABS LAB</strong>
+                  <small>Supervisor: Juliana Lima</small>
+                </div>
+                <span class="badge badge-neutral">Em monitoramento</span>
+              </li>
+            </ul>
+          </div>
+        </aside>
       </div>
     </div>
 
