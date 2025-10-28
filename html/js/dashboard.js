@@ -1,5 +1,5 @@
 // dashboard.js - Dashboard operacional corrigido
-import { state, loadState, saveState, addLog } from './common.js';
+import { state, loadState, addLog } from './common.js';
 
 // Garantir estado carregado
 loadState();
@@ -16,6 +16,12 @@ function formatMinutes(minutes) {
   return `${hours}h ${mins}min`;
 }
 
+function formatDifference(minutes) {
+  if (!minutes || minutes === 0) return '0h';
+  const prefix = minutes > 0 ? '+' : '-';
+  return `${prefix}${formatMinutes(Math.abs(minutes))}`;
+}
+
 // Função para calcular estatísticas do dashboard
 function calculateDashboardStats() {
   const records = state.records || [];
@@ -27,19 +33,19 @@ function calculateDashboardStats() {
 
   // HE Atribuída
   let totalHEAtribuida = 0;
+  const collaboratorMap = new Map();
   Object.values(assignments).forEach(assignmentList => {
     assignmentList.forEach(assignment => {
       totalHEAtribuida += assignment.heMinutes || 0;
+      const key = assignment.matricula;
+      const current = collaboratorMap.get(key) || { atribuida: 0 };
+      current.atribuida += assignment.heMinutes || 0;
+      collaboratorMap.set(key, current);
     });
   });
 
   // Colaboradores com HE
-  const colaboradoresComHE = new Set();
-  Object.values(assignments).forEach(assignmentList => {
-    assignmentList.forEach(assignment => {
-      colaboradoresComHE.add(assignment.matricula);
-    });
-  });
+  const colaboradoresComHE = new Set(collaboratorMap.keys());
 
   // Taxa de Conversão (Atribuída / Planejada)
   const taxaConversao = totalHEPlanejada > 0 ? (totalHEAtribuida / totalHEPlanejada) * 100 : 0;
@@ -47,12 +53,57 @@ function calculateDashboardStats() {
   // Eficiência (simulada)
   const eficiencia = Math.min(100, taxaConversao * 1.2);
 
+  // Consolidar dados de colaboradores
+  const collaboratorSummaries = [];
+  const statusCounts = { completed: 0, pending: 0, delayed: 0 };
+  let totalHERealizada = 0;
+
+  collaboratorMap.forEach((summary, matricula) => {
+    const atribuida = summary.atribuida;
+    const realizada = Math.floor(atribuida * (0.85 + Math.random() * 0.3));
+    const diferenca = realizada - atribuida;
+    const eficienciaColab = atribuida > 0 ? (realizada / atribuida) * 100 : 0;
+
+    let status;
+    if (eficienciaColab >= 100) {
+      status = 'completed';
+      statusCounts.completed += 1;
+    } else if (eficienciaColab >= 90) {
+      status = 'pending';
+      statusCounts.pending += 1;
+    } else {
+      status = 'delayed';
+      statusCounts.delayed += 1;
+    }
+
+    const coll = collaborators.find(c => c.matricula === matricula);
+    collaboratorSummaries.push({
+      nome: coll?.nome || `Colaborador ${matricula}`,
+      matricula,
+      heAtribuida: atribuida,
+      heRealizada: realizada,
+      diferenca,
+      eficiencia: eficienciaColab,
+      status
+    });
+
+    totalHERealizada += realizada;
+  });
+
+  const gapMinutes = totalHEPlanejada - totalHEAtribuida;
+  const liberado24h = Math.min(totalHEAtribuida, Math.round(totalHEAtribuida * 0.35));
+
   return {
     totalHEPlanejada,
     totalHEAtribuida,
+    totalHERealizada,
     colaboradoresComHE: colaboradoresComHE.size,
     taxaConversao,
     eficiencia,
+    gapMinutes,
+    liberado24h,
+    collaboratorSummaries,
+    statusCounts,
     records,
     assignments,
     collaborators
@@ -72,6 +123,58 @@ function updateKPIs(stats) {
   if (kpiEfficiency) kpiEfficiency.textContent = `${Math.round(stats.eficiencia)}%`;
 }
 
+function setElementText(id, value) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.textContent = value;
+  }
+}
+
+function setProgressWidth(id, percent, gradient) {
+  const el = document.getElementById(id);
+  if (el) {
+    const clamped = Math.max(0, Math.min(100, Math.round(percent || 0)));
+    el.style.width = `${clamped}%`;
+    if (gradient) {
+      el.style.background = gradient;
+    } else {
+      el.style.background = '';
+    }
+  }
+}
+
+function updateExecutiveBrief(stats) {
+  setElementText('brief-planejado', formatMinutes(stats.totalHEPlanejada));
+  setElementText('brief-liberado', formatMinutes(stats.totalHEAtribuida));
+  setElementText('brief-gap', formatDifference(stats.gapMinutes));
+  setElementText('brief-colaboradores', stats.colaboradoresComHE.toString());
+}
+
+function updateSidebar(stats) {
+  setElementText('sidebar-conversao', `${Math.round(stats.taxaConversao)}%`);
+  setElementText('sidebar-eficiencia', `${Math.round(stats.eficiencia)}%`);
+  setElementText('sidebar-gap', formatDifference(stats.gapMinutes));
+  setElementText('sidebar-he-planejada', formatMinutes(stats.totalHEPlanejada));
+  setElementText('sidebar-he-liberada', formatMinutes(stats.totalHEAtribuida));
+  setElementText('sidebar-he-realizada', formatMinutes(stats.totalHERealizada));
+
+  setProgressWidth('progress-conversao', stats.taxaConversao);
+  setProgressWidth('progress-eficiencia', stats.eficiencia, 'linear-gradient(90deg, #10b981, #22d3ee)');
+
+  const normalizedGap = Math.abs(stats.gapMinutes);
+  const gapPercent = stats.totalHEPlanejada > 0 ? (normalizedGap / stats.totalHEPlanejada) * 100 : 0;
+  const gapGradient = stats.gapMinutes < 0
+    ? 'linear-gradient(90deg, #22c55e, #0ea5e9)'
+    : 'linear-gradient(90deg, var(--accent), var(--secondary))';
+  setProgressWidth('progress-gap', gapPercent, gapGradient);
+}
+
+function updateInsightHighlights(stats) {
+  setElementText('insight-liberado', formatMinutes(stats.liberado24h));
+  const gapRestante = Math.max(0, stats.gapMinutes);
+  setElementText('insight-gap', formatMinutes(gapRestante));
+}
+
 // Função para popular tabela de detalhes
 function populateDetailsTable(stats) {
   const tbody = document.getElementById('table-detalhes-body');
@@ -79,51 +182,20 @@ function populateDetailsTable(stats) {
 
   tbody.innerHTML = '';
 
-  const collaboratorsWithHE = new Map();
-  
-  // Agregar HE por colaborador
-  Object.values(stats.assignments).forEach(assignmentList => {
-    assignmentList.forEach(assignment => {
-      const current = collaboratorsWithHE.get(assignment.matricula) || { atribuida: 0, realizada: 0 };
-      current.atribuida += assignment.heMinutes || 0;
-      // Simular HE realizada (80-120% da atribuída)
-      current.realizada = Math.floor(current.atribuida * (0.8 + Math.random() * 0.4));
-      collaboratorsWithHE.set(assignment.matricula, current);
-    });
-  });
-
-  const tableData = [];
-  collaboratorsWithHE.forEach((heData, matricula) => {
-    const coll = stats.collaborators.find(c => c.matricula === matricula);
-    const diferenca = heData.realizada - heData.atribuida;
-    const eficiencia = heData.atribuida > 0 ? (heData.realizada / heData.atribuida) * 100 : 0;
-    const status = eficiencia >= 100 ? 'completed' : eficiencia >= 80 ? 'pending' : 'delayed';
-
-    tableData.push({
-      nome: coll?.nome || `Colaborador ${matricula}`,
-      matricula,
-      heAtribuida: heData.atribuida,
-      heRealizada: heData.realizada,
-      diferenca,
-      eficiencia,
-      status
-    });
-  });
-
-  // Ordenar por HE realizada (desc)
+  const tableData = [...(stats.collaboratorSummaries || [])];
   tableData.sort((a, b) => b.heRealizada - a.heRealizada);
 
   tableData.forEach(item => {
     const tr = document.createElement('tr');
-    
-    const statusText = item.status === 'completed' ? 'Concluído' : 
+
+    const statusText = item.status === 'completed' ? 'Concluído' :
                       item.status === 'pending' ? 'Pendente' : 'Atrasado';
-    
-    const statusClass = item.status === 'completed' ? 'status-completed' : 
+
+    const statusClass = item.status === 'completed' ? 'status-completed' :
                        item.status === 'pending' ? 'status-pending' : 'status-delayed';
 
     const diferencaClass = item.diferenca >= 0 ? 'difference-positive' : 'difference-negative';
-    const diferencaText = item.diferenca >= 0 ? `+${formatMinutes(item.diferenca)}` : formatMinutes(item.diferenca);
+    const diferencaText = formatDifference(item.diferenca);
 
     tr.innerHTML = `
       <td style="font-weight: 600;">${item.nome}</td>
@@ -160,15 +232,15 @@ function renderCharts(stats) {
           {
             label: 'HE Planejada',
             data: [3200, 2800, 1900, 1200],
-            backgroundColor: '#3B82F6',
-            borderColor: '#3B82F6',
+            backgroundColor: '#1d4ed8',
+            borderColor: '#1d4ed8',
             borderWidth: 1
           },
           {
-            label: 'HE Atribuída',
+            label: 'HE Liberada',
             data: [2950, 2600, 1750, 950],
-            backgroundColor: '#10B981',
-            borderColor: '#10B981',
+            backgroundColor: '#f97316',
+            borderColor: '#f97316',
             borderWidth: 1
           }
         ]
@@ -205,16 +277,16 @@ function renderCharts(stats) {
           {
             label: 'HE Planejada',
             data: [4200, 3800, 4500, 4100, 3900, 3200, 2800],
-            borderColor: '#3B82F6',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderColor: '#1d4ed8',
+            backgroundColor: 'rgba(29, 78, 216, 0.15)',
             tension: 0.3,
             fill: true
           },
           {
             label: 'HE Realizada',
             data: [3850, 3550, 4200, 3800, 3650, 2950, 2450],
-            borderColor: '#10B981',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            borderColor: '#f97316',
+            backgroundColor: 'rgba(249, 115, 22, 0.15)',
             tension: 0.3,
             fill: true
           }
@@ -243,8 +315,8 @@ function renderCharts(stats) {
           {
             label: 'Volume de Chamadas',
             data: [150, 450, 720, 580, 680, 520, 380, 220],
-            borderColor: '#EF4444',
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            borderColor: '#f97316',
+            backgroundColor: 'rgba(249, 115, 22, 0.1)',
             tension: 0.4,
             fill: true
           }
@@ -270,8 +342,10 @@ function renderCharts(stats) {
       data: {
         labels: ['Concluído', 'Pendente', 'Atrasado'],
         datasets: [{
-          data: [65, 25, 10],
-          backgroundColor: ['#10B981', '#F59E0B', '#EF4444'],
+          data: (stats.statusCounts && (stats.statusCounts.completed || stats.statusCounts.pending || stats.statusCounts.delayed))
+            ? [stats.statusCounts.completed || 0, stats.statusCounts.pending || 0, stats.statusCounts.delayed || 0]
+            : [65, 25, 10],
+          backgroundColor: ['#10b981', '#fbbf24', '#ef4444'],
           borderWidth: 2,
           borderColor: '#fff'
         }]
@@ -301,13 +375,16 @@ function applyDashboardFilter() {
 
   // Calcular estatísticas
   const stats = calculateDashboardStats();
-  
+
   // Atualizar KPIs
   updateKPIs(stats);
-  
+  updateExecutiveBrief(stats);
+  updateSidebar(stats);
+  updateInsightHighlights(stats);
+
   // Popular tabela de detalhes
   populateDetailsTable(stats);
-  
+
   // Renderizar gráficos
   renderCharts(stats);
 
