@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TABI — Home</title>
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/tatico.css">
+
+<!--[if gte mso 9]><xml>
+<mso:CustomDocumentProperties>
+<mso:_dlc_DocId msdt:dt="string">AECX-2147242048-27201</mso:_dlc_DocId>
+<mso:_dlc_DocIdItemGuid msdt:dt="string">0ff4ed44-b091-45ea-89ff-870180e09056</mso:_dlc_DocIdItemGuid>
+<mso:_dlc_DocIdUrl msdt:dt="string">https://aeccombr.sharepoint.com/sites/MELHORIA.CONTNUA/_layouts/15/DocIdRedir.aspx?ID=AECX-2147242048-27201, AECX-2147242048-27201</mso:_dlc_DocIdUrl>
+</mso:CustomDocumentProperties>
+</xml><![endif]-->
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <div class="brand">
+        <div class="logo">T</div>
+        <div class="brand-text">
+          <div class="title">TABI - Controle de Horas Extras</div>
+          <div class="subtitle">Projeto multi-página</div>
+        </div>
+      </div>
+      <div id="clock"></div>
+    </div>
+  </header>
+
+  <main class="container" style="text-align:center">
+    <div class="card" style="max-width:900px;margin:2rem auto">
+      <h2>Páginas</h2>
+      <p>Escolha a área que deseja abrir:</p>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;margin-top:1rem">
+        <a class="btn btn-primary" href="merged.html">PLANEJAMENTO</a>
+        <a class="btn btn-primary" href="supervisor.html">SUPERVISOR</a>
+        <a class="btn btn-primary" href="dashboard.html">DASHBOARD</a>
+      </div>
+
+      <hr style="margin:1.25rem 0">
+
+    </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeClock } from './js/common.js';
+    initializeClock();
+  </script>
+</body>
+</html>

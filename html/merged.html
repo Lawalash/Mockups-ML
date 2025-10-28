@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TABI — Unificado (Mockup)</title>
+
+  <link rel="stylesheet" href="./css/merged.css" />
+  <!-- Chart.js (usado pelo script) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js" defer></script>
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">T</div>
+      <div class="brand-text">
+        <div class="title">TABI</div>
+        <div class="subtitle">Mockup</div>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div id="clock" class="clock" aria-live="polite"></div>
+
+      <div class="bell-container">
+        <button id="btnBell" class="btn-bell" aria-label="Notificações">
+          🔔 <span id="bellBadge" class="badge hidden">0</span>
+        </button>
+        <div id="bellPopup" class="bell-popup hidden" role="dialog" aria-label="Notificações recentes"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-grid">
+    <!-- Grupos Consolidados -->
+    <section class="card" id="groupsCard">
+      <div class="card-header">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <h3 style="margin:0">Grupos Consolidados</h3>
+
+          <div class="actions-inline" style="margin-left:auto;">
+            <button id="btnSimulateGroups" class="btn info">Simular Grupos</button>
+            <button id="btnValidateSelected" class="btn success">Validar Selecionados</button>
+            <label style="display:flex;align-items:center;gap:8px;"><input id="chkAllGroups" type="checkbox"> Selecionar todos</label>
+          </div>
+      </div>
+
+        <!-- FILTROS (Data Início, Data Fim, Intervalo, Operação, Segmento, HC mínimo, Status) -->
+        <div class="filters-inline" style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <label style="font-size:0.9rem;">
+            Início <input id="f_start" type="date" />
+          </label>
+          <label style="font-size:0.9rem;">
+            Fim <input id="f_end" type="date" />
+          </label>
+          <label style="font-size:0.9rem;">
+            Intervalo
+            <input type="time" id="f_interval" step="600" placeholder="HH:MM">
+          </label>
+          <label style="font-size:0.9rem;">
+            Operação
+            <select id="f_operation">
+              <option value="">Todos</option>
+              <option>VIVO</option><option>TIM</option><option>CLARO</option><option>OI</option>
+            </select>
+          </label>
+          <label style="font-size:0.9rem;">
+            Segmento
+            <select id="f_segment">
+              <option value="">Todos</option>
+              <option>CONTROLE FRONT MOC</option>
+              <option>CONTROLE GRE BH</option>
+              <option>PRÉ PAGO ESE BH</option>
+              <option>LABS LAB</option>
+            </select>
+          </label>
+          <label style="font-size:0.9rem;">
+            HC ≥ <input id="f_hc_min" type="number" min="0" style="width:80px" />
+          </label>
+          <label style="font-size:0.9rem;">
+            Status
+            <select id="f_status">
+              <option value="">Todos</option>
+              <option>Pendente</option>
+              <option>Publicado</option>
+              <option>Validado</option>
+            </select>
+          </label>
+
+          <div style="margin-left:auto; display:flex; gap:8px;">
+            <button id="btnApplyFilters" class="btn">Aplicar</button>
+            <button id="btnClearFilters" class="btn">Limpar</button>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="table-wrap">
+        <table id="table_groups">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Data Início</th>
+              <th>Data Fim</th>
+              <th>Intervalo</th>
+              <th>Operação</th>
+              <th>Segmento</th>
+              <th>HE (h)</th>
+              <th>Atribuídas</th>
+              <th>HC</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="chart-card">
+        <h4>Visualização por Segmento</h4>
+        <canvas id="chart_groups" style="max-height:260px"></canvas>
+      </div>
+
+      <div class="summary">
+        <div>Total registros: <strong id="sum_total">0</strong></div>
+        <div>Rascunhos: <strong id="sum_draft">0</strong></div>
+        <div>Publicados: <strong id="sum_published">0</strong></div>
+        <div>Validados: <strong id="sum_validated">0</strong></div>
+      </div>
+      <!-- Planning charts (demonstrativo) -->
+      <section id="planning_charts" class="card" style="margin-top:1rem; padding:1rem;">
+        <div class="chart-card small card">
+          <h4 style="margin:0 0 8px 0">HE por Segmento</h4>
+          <canvas id="chart_he_by_segment"></canvas>
+        </div>
+
+        <div class="chart-card small card">
+          <h4 style="margin:0 0 8px 0">Tendência HE Atribuída (últimos dias)</h4>
+          <canvas id="chart_he_trend"></canvas>
+        </div>
+
+        <div class="chart-card small card">
+          <h4 style="margin:0 0 8px 0">Distribuição HC por Operação</h4>
+          <canvas id="chart_hc_by_operation"></canvas>
+        </div>
+      </section>
+
+    </section>
+
+    <section class="card" aria-hidden="true" style="display:none"></section>
+  </main>
+
+  <!-- Sidebar (recolhível) -->
+  <aside id="sidebarForm" class="sidebar">
+    <div class="sidebar-header">
+      <h3>Registrar Solicitação</h3>
+      <button id="btnCloseSidebar" class="btn">Fechar</button>
+    </div>
+
+    <div class="form-grid">
+      <label>Data inicial * <input id="t_start_date" type="date" /></label>
+      <label>Data final * <input id="t_end_date" type="date" /></label>
+      <label>DMM <input id="t_dmm" type="text" placeholder="Ex: 3°" /></label>
+
+      <label>Operação
+        <select id="t_operation">
+          <option value="">Selecione...</option>
+          <option>VIVO</option><option>TIM</option><option>CLARO</option><option>OI</option>
+        </select>
+      </label>
+
+      <label>Segmento
+        <select id="t_segment">
+          <option value="">Selecione...</option>
+          <option>CONTROLE FRONT MOC</option>
+          <option>CONTROLE GRE BH</option>
+          <option>PRÉ PAGO ESE BH</option>
+          <option>LABS LAB</option>
+        </select>
+      </label>
+
+      <label>
+        Intervalo
+        <input type="time" id="s_interval" step="600" placeholder="HH:MM">
+      </label>
+
+      <label>HC por intervalo <input id="t_hc" type="number" min="1" value="1" /></label>
+      <label>Motivo <input id="t_motivo" type="text" placeholder="Motivo" /></label>
+    </div>
+
+    <div class="btn-row">
+      <button id="btnAdd" class="btn primary">Adicionar</button>
+      <button id="btnClear" class="btn">Limpar</button>
+    </div>
+
+    <div class="card-sub">
+      <button id="btnTpl" class="btn info">Template CSV</button>
+      <input id="fileImport" type="file" accept=".csv" style="display:none" />
+      <button id="btnImport" class="btn">Importar CSV</button>
+      <button id="btnExport" class="btn">Exportar Dados</button>
+    </div>
+  </aside>
+
+  <button id="btnToggleForm" class="sidebar-toggle" aria-label="Abrir formulário">Registrar</button>
+
+  <!-- Delete confirm modal -->
+  <div id="deleteModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-inner">
+      <h3>Confirmar Remoção</h3>
+      <p id="deleteModalText">Deseja remover este registro?</p>
+      <div class="modal-actions">
+        <button id="btnCancelDelete" class="btn">Cancelar</button>
+        <button id="btnConfirmDelete" class="btn danger">Remover</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import preview modal -->
+  <div id="importModal" class="modal hidden">
+    <div class="modal-inner">
+      <h3>Preview de Importação</h3>
+      <div id="import_preview"></div>
+      <div class="modal-actions">
+        <button id="btnCancelImport" class="btn">Cancelar</button>
+        <button id="btnConfirmImport" class="btn primary">Confirmar Importação</button>
+      </div>
+    </div>
+  </div>
+
+   <!-- Group modal: header / body / footer -->
+  <div id="groupModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-inner modal-large">
+      <!-- HEADER -->
+      <div class="modal-header">
+        <div class="modal-title">
+          <h3 id="groupModalTitle">Detalhes do Grupo</h3>
+          <div id="groupImportedBy" class="group-import">Importado por: <strong id="modalImportedBy">—</strong> <span id="modalCreatedAt" class="muted">—</span></div>
+        </div>
+
+        <div class="modal-stats">
+          <div>Total HC: <strong id="modalTotalHC">0</strong></div>
+          <div>Total HE (h): <strong id="modalTotalHE">0h</strong></div>
+          <div>Atribuídas: <strong id="modalAssignedHE">0h</strong></div>
+        </div>
+      </div>
+
+      <!-- BODY -->
+      <div class="modal-body">
+        <section class="assignments-section">
+          <h4>Atribuições (Resumo por colaborador)</h4>
+          <div class="table-wrap fixed-height">
+            <table id="assignmentsSummaryTable" class="assign-table">
+              <thead>
+                <tr>
+                  <th>Matrícula</th>
+                  <th>Nome</th>
+                  <th>Operação</th>
+                  <th>Segmento</th>
+                  <th>Matrícula Atribuidor</th>
+                  <th>Nome Atribuidor</th>
+                  <th>Horas atribuídas</th>
+                  <th>Intervalo</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="simulation-section">
+          <h4>Simulação / Histórico detalhado</h4>
+          <div class="muted">A tabela abaixo mostra micro-atribuições (quem pegou, para quem foi, quantas horas e em qual intervalo).</div>
+          <div id="simulationWrapper" class="table-wrap fixed-height hidden">
+            <table id="simulationTable" class="assign-table">
+              <thead>
+                <tr>
+                  <th>Matrícula</th>
+                  <th>Nome</th>
+                  <th>Operação</th>
+                  <th>Segmento</th>
+                  <th>Matrícula Atribuidor</th>
+                  <th>Nome Atribuidor</th>
+                  <th>Horas atribuídas</th>
+                  <th>Intervalo</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="modal-footer">
+        <div class="footer-left muted">Observação: mockup para demonstração — simulação persistida para rastreabilidade.</div>
+        <div class="footer-actions">
+          <button id="btnSimulateAssign" class="btn info">Simular Atribuições</button>
+          <button id="btnCloseGroup" class="btn">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="./js/merged.js" defer></script>
+</body>
+</html>

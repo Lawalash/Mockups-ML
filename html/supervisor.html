@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TABI - SUPERVISOR</title>
+  <link rel="stylesheet" href="./css/supervisor.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <div class="brand">
+        <div class="logo">T</div>
+        <div class="brand-text">
+          <div class="title">TABI - SUPERVISOR</div>
+          <div class="subtitle">Atribuição de HE</div>
+        </div>
+      </div>
+      <div id="clock"></div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="main-grid">
+      <div>
+        <!-- Filtros -->
+        <div class="filters-card">
+          <h3 class="card-title">Filtros</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="s_start">Data Início</label>
+              <input type="date" id="s_start">
+            </div>
+            <div class="form-group">
+              <label for="s_end">Data Fim</label>
+              <input type="date" id="s_end">
+            </div>
+            <div class="form-group">
+              <label for="s_segment">Segmento</label>
+              <select id="s_segment">
+                <option value="">Todos</option>
+                <option>CONTROLE FRONT MOC</option>
+                <option>CONTROLE GRE BH</option>
+                <option>PRÉ PAGO ESE BH</option>
+                <option>LABS LAB</option>
+              </select>
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-primary" id="btnSupFilter">Aplicar Filtros</button>
+            <button class="btn btn-secondary" id="btnSupClear">Limpar</button>
+          </div>
+        </div>
+
+        <!-- Seção: Grupos Validados -->
+        <section class="section">
+          <div class="section-header">
+            <div class="section-icon"></div>
+            <h2 class="section-title">Grupos Validados para Atribuição</h2>
+          </div>
+          <div id="validated_groups"></div>
+        </section>
+
+        <!-- Seção: Colaboradores Atribuídos -->
+        <section class="section">
+          <div class="section-header">
+            <h2 class="section-title">Colaboradores com HE Atribuídas</h2>
+          </div>
+          <div id="assigned_collaborators"></div>
+        </section>
+
+        <!-- Seção: Relatório HE -->
+        <section class="section">
+          <div class="section-header">
+            <h2 class="section-title">Relatório de HE - Atribuída vs Realizada</h2>
+          </div>
+          <div id="he_report"></div>
+        </section>
+      </div>
+
+      <div>
+        <!-- Critérios de Elegibilidade -->
+        <div class="criteria-box">
+          <h4 style="margin-bottom: 1rem; color: var(--text-primary);">Critérios de Elegibilidade</h4>
+          <div class="criteria-item">
+            <div class="criteria-icon">✓</div>
+            <span class="criteria-text">Banco de horas negativo</span>
+          </div>
+          <div class="criteria-item">
+            <div class="criteria-icon">✓</div>
+            <span class="criteria-text">Produtividade adequada</span>
+          </div>
+          <div class="criteria-item">
+            <div class="criteria-icon">✓</div>
+            <span class="criteria-text">Ausência de restrições</span>
+          </div>
+        </div>
+
+        <!-- Reset Demo -->
+        <div class="card" style="margin-top: 1rem;">
+          <h4 style="margin-bottom: 0.5rem;">Reset Demo</h4>
+          <p class="text-small text-muted">Limpa todos os dados e recria colaboradores e registros de demonstração.</p>
+          <button class="btn btn-warning" id="btnResetDemo">Reset Demo</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal de Atribuição Melhorado -->
+  <div id="assignModal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Atribuir Colaboradores</h3>
+        <button class="btn btn-danger" id="btnCloseAssign2">Fechar</button>
+      </div>
+      <div id="assign_content" class="modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCloseAssignFooter2">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    // Clock
+    function updateClock() {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('pt-BR');
+      const dateString = now.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      const clock = document.getElementById('clock');
+      if (clock) {
+        clock.innerHTML = `${timeString}<br><small style="font-size: 0.75rem; opacity: 0.9;">${dateString}</small>`;
+      }
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+  </script>
+
+  <script type="module" src="js/common.js"></script>
+  <script type="module" src="./js/supervisor.js"></script>
+</body>
+</html>

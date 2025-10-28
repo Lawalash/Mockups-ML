@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TABI - DASHBOARD OPERACIONAL</title>
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <div class="brand">
+        <div class="logo">T</div>
+        <div class="brand-text">
+          <div class="title">TABI - DASHBOARD OPERACIONAL</div>
+          <div class="subtitle">Visão em Tempo Real - HE e Operações</div>
+        </div>
+      </div>
+      <div id="clock"></div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Filtros -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Filtros do Dashboard</h3>
+      </div>
+      <div class="dashboard-filter-row form-row">
+        <div class="form-group">
+          <label for="d_start">Data Início</label>
+          <input type="date" id="d_start">
+        </div>
+        <div class="form-group">
+          <label for="d_end">Data Fim</label>
+          <input type="date" id="d_end">
+        </div>
+        <div class="form-group">
+          <label for="d_operation">Operação</label>
+          <select id="d_operation">
+            <option value="">Todas</option>
+            <option>TIM</option>
+            <option>VIVO</option>
+            <option>CLARO</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="d_segment">Segmento</label>
+          <select id="d_segment">
+            <option value="">Todos</option>
+            <option>CONTROLE FRONT MOC</option>
+            <option>CONTROLE GRE BH</option>
+            <option>PRÉ PAGO ESE BH</option>
+            <option>LABS LAB</option>
+          </select>
+        </div>
+        <div class="form-group filter-actions">
+          <button class="btn btn-primary" id="btnApplyDash">Aplicar Filtros</button>
+          <button class="btn btn-secondary" id="btnClearDash">Limpar</button>
+          <button class="btn btn-warning" id="btnLoadDemo">Carregar Demo</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <div id="dashboard-content" style="display:none">
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon">⏱️</div>
+          <div class="kpi-content">
+            <div class="kpi-value" id="kpi-total-he">0h</div>
+            <div class="kpi-label">HE Total Planejada</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">👥</div>
+          <div class="kpi-content">
+            <div class="kpi-value" id="kpi-colaboradores">0</div>
+            <div class="kpi-label">Colaboradores com HE</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">✅</div>
+          <div class="kpi-content">
+            <div class="kpi-value" id="kpi-taxa-conversao">0%</div>
+            <div class="kpi-label">Taxa de Conversão</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">📈</div>
+          <div class="kpi-content">
+            <div class="kpi-value" id="kpi-efficiency">0%</div>
+            <div class="kpi-label">Eficiência Operacional</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráficos -->
+      <div class="charts-grid">
+        <div class="chart-card full-width">
+          <div class="chart-header">
+            <h3>Distribuição de HE por Segmento</h3>
+          </div>
+          <div class="chart-container">
+            <canvas id="chart_he_segmento"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Evolução Diária - HE</h3>
+          </div>
+          <div class="chart-container">
+            <canvas id="chart_evolucao_diaria"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Picos de Chamadas por Turno</h3>
+          </div>
+          <div class="chart-container">
+            <canvas id="chart_picos_chamadas"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Status de Atribuição</h3>
+          </div>
+          <div class="chart-container">
+            <canvas id="chart_status_atribuicao"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Detalhamento por Colaborador</h3>
+        </div>
+        <div class="table-container">
+          <table class="data-table" id="table-detalhes">
+            <thead>
+              <tr>
+                <th>Colaborador</th>
+                <th>Matrícula</th>
+                <th>HE Atribuída</th>
+                <th>HE Realizada</th>
+                <th>Diferença</th>
+                <th>Eficiência</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="table-detalhes-body">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estado Vazio -->
+    <div id="dashboard-empty" class="card empty-state">
+      <div class="empty-state-icon">📊</div>
+      <div class="empty-state-text">Dashboard Operacional</div>
+      <div class="empty-state-subtext">Aplique os filtros ou carregue dados de demonstração para visualizar</div>
+    </div>
+  </main>
+
+  <script type="module" src="js/common.js"></script>
+  <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>
