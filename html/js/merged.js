@@ -10,23 +10,84 @@
   const MAX_ASSIGN_MIN = 105; // 1h45 em minutos por chunk
   const MAX_GROUPS_ALLOWED = 3;
 
+  const DEFAULT_COLLABORATORS = [
+    { matricula: IMPORTER_MATRICULA, nome: IMPORTER_NAME, role: 'planner' },
+    { matricula: '289854', nome: 'Planner Bruno', role: 'planner' },
+    { matricula: '289860', nome: 'Supervisor Ana', role: 'supervisor' },
+    { matricula: '289861', nome: 'Supervisor Carlos', role: 'supervisor' },
+    { matricula: '289862', nome: 'Coordenador Paulo', role: 'coordenador' },
+    { matricula: '289863', nome: 'Coordenadora Juliana', role: 'coordenador' },
+    { matricula: '289870', nome: 'João Silva', role: 'operador' },
+    { matricula: '289871', nome: 'Maria Santos', role: 'operador' },
+    { matricula: '289872', nome: 'Pedro Oliveira', role: 'operador' },
+    { matricula: '289873', nome: 'Luiza Costa', role: 'operador' },
+    { matricula: '289874', nome: 'Rafael Sousa', role: 'operador' },
+    { matricula: '289875', nome: 'Camila Ribeiro', role: 'operador' }
+  ];
+
   let state = {
     records: [],
-    collaborators: [
-      { matricula: IMPORTER_MATRICULA, nome: IMPORTER_NAME, role: 'planner' },
-      { matricula: '289854', nome: 'Planner Bruno', role: 'planner' },
-      { matricula: '289860', nome: 'Supervisor Ana', role: 'supervisor' },
-      { matricula: '289861', nome: 'Supervisor Carlos', role: 'supervisor' },
-      { matricula: '289870', nome: 'João Silva', role: 'operador' },
-      { matricula: '289871', nome: 'Maria Santos', role: 'operador' },
-      { matricula: '289872', nome: 'Pedro Oliveira', role: 'operador' },
-      { matricula: '289873', nome: 'Luiza Costa', role: 'operador' },
-      { matricula: '289874', nome: 'Rafael Sousa', role: 'operador' },
-      { matricula: '289875', nome: 'Camila Ribeiro', role: 'operador' }
-    ],
+    collaborators: DEFAULT_COLLABORATORS.map(c => ({ ...c })),
     notifications: [],
     importBuffer: []
   };
+
+  function ensureDefaultCollaborators(){
+    if(!Array.isArray(state.collaborators) || !state.collaborators.length){
+      state.collaborators = DEFAULT_COLLABORATORS.map(c => ({ ...c }));
+      return;
+    }
+    const existing = new Set(state.collaborators.map(c => c.matricula));
+    DEFAULT_COLLABORATORS.forEach(def => {
+      if(!existing.has(def.matricula)) state.collaborators.push({ ...def });
+    });
+  }
+
+  function roleLabel(role){
+    if(!role) return '';
+    const normalized = String(role).toLowerCase();
+    if(normalized === 'supervisor') return 'Supervisor';
+    if(normalized === 'coordenador') return 'Coordenador';
+    if(normalized === 'planner') return 'Planner';
+    return role.charAt(0).toUpperCase() + role.slice(1);
+  }
+
+  function getApproverOptions(){
+    return (state.collaborators || []).filter(c => ['supervisor','coordenador'].includes(String(c.role || '').toLowerCase()));
+  }
+
+  function normalizeApprover(id = '', name = '', role = ''){
+    const options = getApproverOptions();
+    let approver = options.find(c => c.matricula === id);
+    if(!approver && id){
+      const anyMatch = (state.collaborators || []).find(c => c.matricula === id);
+      if(anyMatch && ['supervisor','coordenador'].includes(String(anyMatch.role || '').toLowerCase())) approver = anyMatch;
+    }
+    if(approver){
+      return { approver_id: approver.matricula, approver_name: approver.nome, approver_role: approver.role };
+    }
+    if(name){
+      return { approver_id: id || '', approver_name: name, approver_role: role || '' };
+    }
+    return { approver_id: '', approver_name: '', approver_role: '' };
+  }
+
+  function populateApproverSelect(){
+    const select = document.getElementById('t_approver');
+    if(!select) return;
+    const current = select.value;
+    select.innerHTML = '<option value="">Selecione...</option>';
+    getApproverOptions().forEach(opt => {
+      const option = document.createElement('option');
+      option.value = opt.matricula;
+      option.textContent = `${opt.nome} — ${roleLabel(opt.role)}`.trim();
+      select.appendChild(option);
+    });
+    if(current){
+      const exists = Array.from(select.options).some(o => o.value === current);
+      if(exists) select.value = current; else select.value = '';
+    }
+  }
 
   // ---------- Utilities ----------
   function loadState() {
@@ -40,6 +101,7 @@
         if (!Array.isArray(state.notifications)) state.notifications = [];
         if (!Array.isArray(state.importBuffer)) state.importBuffer = [];
       }
+      ensureDefaultCollaborators();
     } catch (e) { console.warn('loadState error', e); }
   }
 
@@ -488,7 +550,20 @@
   function removeRecord(id, ask = true){ if(ask){ showDeleteConfirm(id); return; } state.records = state.records.filter(r => r.id !== id); saveState(); renderGroups(); }
 
   // ---------- Import / Export / Template ----------
-  function downloadTemplate(){ const csv = ['start_date,end_date,dmm,segment,operation,interval_start,hc_requested,motivo,created_by', `${todayStr()},${todayStr()},1°,PRÉ PAGO ESE BH,TIM,07:00:00,4,Pico matutino,${IMPORTER_NAME} (${IMPORTER_MATRICULA})`].join('\n'); const blob = new Blob([csv], { type: 'text/csv' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'template_tabi.csv'; a.click(); URL.revokeObjectURL(url); }
+  function downloadTemplate(){
+    const sampleApprover = getApproverOptions()[0] || null;
+    const csv = [
+      'start_date,end_date,dmm,segment,operation,interval_start,hc_requested,motivo,created_by,approver_id,approver_name,approver_role',
+      `${todayStr()},${todayStr()},1°,PRÉ PAGO ESE BH,TIM,07:00:00,4,Pico matutino,${IMPORTER_NAME} (${IMPORTER_MATRICULA}),${sampleApprover ? sampleApprover.matricula : ''},${sampleApprover ? sampleApprover.nome : ''},${sampleApprover ? sampleApprover.role : ''}`
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'template_tabi.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   function handleImportFile(e){ const file = e.target.files && e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = (ev) => parseCSVImport(ev.target.result); reader.readAsText(file,'UTF-8'); e.target.value = ''; }
 
@@ -506,7 +581,10 @@
       interval_start:(o.interval_start || o.interval || '').trim(),
       hc_requested:parseInt(o.hc_requested,10)||1,
       motivo:o.motivo||'',
-      created_by:o.created_by||`${IMPORTER_NAME} (${IMPORTER_MATRICULA})`
+      created_by:o.created_by||`${IMPORTER_NAME} (${IMPORTER_MATRICULA})`,
+      approver_id:o.approver_id||'',
+      approver_name:o.approver_name||'',
+      approver_role:o.approver_role||''
     }));
     showImportPreview();
   }
@@ -530,6 +608,7 @@
   function confirmImport(){
     if(!state.importBuffer||!state.importBuffer.length) return alert('Nada para importar.');
     state.importBuffer.forEach(b=>{
+      const approverInfo = normalizeApprover(b.approver_id, b.approver_name, b.approver_role);
       state.records.push({
         id: uid('r_'),
         start_date: b.start_date,
@@ -545,7 +624,10 @@
         assignments:[],
         status:'Pendente',
         created_at: new Date().toISOString(),
-        created_by: b.created_by || `${IMPORTER_NAME} (${IMPORTER_MATRICULA})`
+        created_by: b.created_by || `${IMPORTER_NAME} (${IMPORTER_MATRICULA})`,
+        approver_id: approverInfo.approver_id,
+        approver_name: approverInfo.approver_name,
+        approver_role: approverInfo.approver_role
       });
     });
     const count = state.importBuffer.length;
@@ -558,8 +640,25 @@
 
   function exportData(){
     if(!state.records.length) return alert('Não há registros para exportar.');
-    const headers = ['id','start_date','end_date','dmm','segment','operation','interval_start','hc_requested','he_minutes','assigned_hc','assigned_he_minutes','created_by','status'];
-    const rows = [headers].concat(state.records.map(r=>[r.id, r.start_date||'', r.end_date||'', r.dmm||'', r.segment||'', r.operation||'', r.interval_start||'', r.hc_requested||0, r.he_minutes||0, r.assigned_hc||0, r.assigned_he_minutes||0, r.created_by||'', r.status||'']));
+    const headers = ['id','start_date','end_date','dmm','segment','operation','interval_start','hc_requested','he_minutes','assigned_hc','assigned_he_minutes','created_by','status','approver_id','approver_name','approver_role'];
+    const rows = [headers].concat(state.records.map(r=>[
+      r.id,
+      r.start_date||'',
+      r.end_date||'',
+      r.dmm||'',
+      r.segment||'',
+      r.operation||'',
+      r.interval_start||'',
+      r.hc_requested||0,
+      r.he_minutes||0,
+      r.assigned_hc||0,
+      r.assigned_he_minutes||0,
+      r.created_by||'',
+      r.status||'',
+      r.approver_id||'',
+      r.approver_name||'',
+      r.approver_role||''
+    ]));
     const csv = rows.map(row => row.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type:'text/csv' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `tabi_export_${todayStr()}.csv`; a.click(); URL.revokeObjectURL(url);
   }
@@ -609,6 +708,8 @@
     const segment = document.getElementById('t_segment')?.value || '';
     const hc = parseInt(document.getElementById('t_hc')?.value,10) || 1;
     const motivo = document.getElementById('t_motivo')?.value || '';
+    const approverSelect = document.getElementById('t_approver');
+    const approverInfo = normalizeApprover(approverSelect ? approverSelect.value : '');
 
     // Intervals support:
     // - Prefer multi-select with id 't_intervals' (select multiple)
@@ -642,7 +743,10 @@
         assignments:[],
         status:'Pendente',
         created_at: new Date().toISOString(),
-        created_by: `${IMPORTER_NAME} (${IMPORTER_MATRICULA})`
+        created_by: `${IMPORTER_NAME} (${IMPORTER_MATRICULA})`,
+        approver_id: approverInfo.approver_id,
+        approver_name: approverInfo.approver_name,
+        approver_role: approverInfo.approver_role
       };
       state.records.push(rec);
     });
@@ -656,6 +760,7 @@
     ['t_start_date','t_end_date','t_dmm','t_operation','t_segment','t_hc','t_motivo'].forEach(id=>{ const el = document.getElementById(id); if(el) el.value=''; });
     const sel = document.getElementById('t_intervals'); if(sel) Array.from(sel.options).forEach(o=>o.selected=false);
     const single = document.getElementById('s_interval'); if(single) single.value = '';
+    const approver = document.getElementById('t_approver'); if(approver) approver.value = '';
   }
 
   // ---------- Bind UI ----------
@@ -748,6 +853,7 @@
 
     const ops = ['TIM','VIVO','CLARO','OI'];
     const segs = ['PRÉ PAGO ESE BH','CONTROLE FRONT MOC','CONTROLE GRE BH','LABS LAB'];
+    const approvers = getApproverOptions();
     const intervalsPool = ['07:00:00','07:10:00','07:20:00','08:00:00','08:10:00','09:00:00','10:00:00','11:00:00'];
 
     const today = new Date();
@@ -767,6 +873,7 @@
       for (let i = 0; i < desiredIntervals; i++) {
         const interval = intervalsPool[(i + g) % intervalsPool.length];
         const hc = 1 + Math.floor(Math.random() * 8);
+        const approver = approvers.length ? approvers[(existingCount + g + i) % approvers.length] : null;
         const rec = {
           id: uid('r_'),
           start_date, end_date,
@@ -780,7 +887,10 @@
           assignments: [],
           status: 'Pendente',
           created_at: new Date().toISOString(),
-          created_by: `${IMPORTER_NAME} (${IMPORTER_MATRICULA})`
+          created_by: `${IMPORTER_NAME} (${IMPORTER_MATRICULA})`,
+          approver_id: approver ? approver.matricula : '',
+          approver_name: approver ? approver.nome : '',
+          approver_role: approver ? approver.role : ''
         };
         state.records.push(rec);
         createdRecords++;
@@ -805,6 +915,7 @@
     // Mantemos colaboradores/notifications, mas resetamos os registros para um único registro pendente.
     state.records = [];
     // seed single demo (pendente) — garante comportamento antigo (F5 => 1 grupo Pendente)
+    const defaultApprover = getApproverOptions()[0] || null;
     state.records.push({
       id: uid('r_'),
       start_date: todayStr(),
@@ -819,7 +930,10 @@
       assignments: [],
       status: 'Pendente',
       created_at: new Date().toISOString(),
-      created_by: `${IMPORTER_NAME} (${IMPORTER_MATRICULA})`
+      created_by: `${IMPORTER_NAME} (${IMPORTER_MATRICULA})`,
+      approver_id: defaultApprover ? defaultApprover.matricula : '',
+      approver_name: defaultApprover ? defaultApprover.nome : '',
+      approver_role: defaultApprover ? defaultApprover.role : ''
     });
     saveState();
     // ===================================================================================
@@ -827,6 +941,7 @@
     initializeClock();
     initIntervals();
     bindUI();
+    populateApproverSelect();
 
     renderGroups();
     renderBell();
