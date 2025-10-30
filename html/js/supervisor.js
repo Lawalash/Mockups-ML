@@ -29,6 +29,13 @@ function formatMinutes(minutes) {
   return `${hours}h ${mins}min`;
 }
 
+function normalizeText(text) {
+  return String(text || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
 function calculateEligibilityScore(collaborator) {
   let score = 0;
   if (collaborator.bancoHoras && collaborator.bancoHoras < 0) score += 3;
@@ -239,11 +246,11 @@ export function renderAssignedCollaborators() {
 
   // Aggregate assignments
   const assignments = state.assignments || {};
-  const recsById = (state.records || []).reduce((acc, r) => { 
-    acc[r.id] = r; 
-    return acc; 
+  const recsById = (state.records || []).reduce((acc, r) => {
+    acc[r.id] = r;
+    return acc;
   }, {});
-  
+
   const byColl = {};
   Object.keys(assignments).forEach((recId) => {
     (assignments[recId] || []).forEach((a) => {
@@ -264,148 +271,361 @@ export function renderAssignedCollaborators() {
   });
 
   const mats = Object.keys(byColl).sort();
-  
+
   if (mats.length === 0) {
     container.appendChild(makeNotice('Nenhum colaborador com HE atribuída', '👥'));
     return;
   }
 
-  mats.forEach((mat) => {
-    const coll = (state.collaborators || []).find(c => String(c.matricula) === String(mat));
+  const collaboratorIndex = (state.collaborators || []).reduce((acc, coll) => {
+    acc[String(coll.matricula)] = coll;
+    return acc;
+  }, {});
+
+  const assignedItems = mats.map((mat) => {
+    const coll = collaboratorIndex[String(mat)];
     const data = byColl[mat];
+    const coordinatorIdRaw = coll?.coordenadorId || null;
+    const supervisorIdRaw = coll?.supervisorId || null;
+    const coordinatorId = coordinatorIdRaw || 'none';
+    const supervisorId = supervisorIdRaw || 'none';
+    const coordinatorName = coordinatorIdRaw && collaboratorIndex[String(coordinatorIdRaw)]
+      ? collaboratorIndex[String(coordinatorIdRaw)].nome
+      : 'Sem Coordenador';
+    const supervisorName = supervisorIdRaw && collaboratorIndex[String(supervisorIdRaw)]
+      ? collaboratorIndex[String(supervisorIdRaw)].nome
+      : 'Sem Supervisor';
 
-    // Novo Card Design
-    const card = document.createElement('div');
-    card.className = 'assigned-card';
-
-    // Header
-    const header = document.createElement('div');
-    header.className = 'assigned-header';
-    
-    const avatar = document.createElement('div');
-    avatar.className = 'assigned-avatar';
-    avatar.textContent = (coll?.nome || 'C')[0].toUpperCase();
-    
-    const info = document.createElement('div');
-    info.className = 'assigned-info';
-    
-    const name = document.createElement('div');
-    name.className = 'assigned-name';
-    name.textContent = coll?.nome || `Colaborador ${mat}`;
-    
-    const meta = document.createElement('div');
-    meta.className = 'assigned-meta';
-    meta.innerHTML = `
-      <div>Matrícula: <strong>${mat}</strong></div>
-      <div>${data.items.length} intervalo(s) atribuído(s)</div>
-    `;
-    
-    info.appendChild(name);
-    info.appendChild(meta);
-    header.appendChild(avatar);
-    header.appendChild(info);
-    card.appendChild(header);
-
-    // Statistics
-    const stats = document.createElement('div');
-    stats.className = 'assigned-stats';
-    
-    const statItems = [
-      { label: 'HE Total', value: formatMinutes(data.totalMinutes) },
-      { label: 'Intervalos', value: data.items.length },
-      { label: 'Média/HE', value: formatMinutes(Math.round(data.totalMinutes / data.items.length)) }
-    ];
-    
-    statItems.forEach((s) => {
-      const stat = document.createElement('div');
-      stat.className = 'assigned-stat';
-      const value = document.createElement('div');
-      value.className = 'assigned-stat-value';
-      value.textContent = String(s.value);
-      const label = document.createElement('div');
-      label.className = 'assigned-stat-label';
-      label.textContent = s.label;
-      stat.appendChild(value);
-      stat.appendChild(label);
-      stats.appendChild(stat);
-    });
-    
-    card.appendChild(stats);
-
-    // Intervals List
-    const intervals = document.createElement('div');
-    intervals.className = 'assigned-intervals';
-    
-    data.items.slice(0, 3).forEach((it) => {
-      const interval = document.createElement('div');
-      interval.className = 'interval-item';
-      
-      const time = document.createElement('div');
-      time.className = 'interval-time';
-      time.textContent = `${it.date} - ${it.interval}`;
-      
-      const minutes = document.createElement('div');
-      minutes.className = 'interval-minutes';
-      minutes.textContent = formatMinutes(it.heMinutes);
-      
-      interval.appendChild(time);
-      interval.appendChild(minutes);
-      intervals.appendChild(interval);
-    });
-    
-    if (data.items.length > 3) {
-      const more = document.createElement('div');
-      more.className = 'interval-item';
-      more.style.textAlign = 'center';
-      more.style.color = 'var(--text-muted)';
-      more.textContent = `... e mais ${data.items.length - 3} intervalo(s)`;
-      intervals.appendChild(more);
-    }
-    
-    card.appendChild(intervals);
-
-    // Actions
-    const actions = document.createElement('div');
-    actions.className = 'assigned-actions';
-    
-    const btnEdit = document.createElement('button');
-    btnEdit.className = 'btn btn-warning';
-    btnEdit.innerHTML = '✏️ Editar';
-    btnEdit.addEventListener('click', () => {
-      if (data.items.length > 0) {
-        editAssignment(data.items[0].recId, data.items[0].assignmentId, mat);
-      }
-    });
-    
-    const btnRemove = document.createElement('button');
-    btnRemove.className = 'btn btn-danger';
-    btnRemove.innerHTML = ' Remover';
-    btnRemove.addEventListener('click', () => {
-      if (confirm(`Remover todas as atribuições de ${coll?.nome || mat}?`)) {
-        data.items.forEach(it => {
-          removeAssignment(it.recId, it.assignmentId, mat);
-        });
-      }
-    });
-    
-    const btnView = document.createElement('button');
-    btnView.className = 'btn btn-secondary';
-    btnView.innerHTML = ' Detalhes';
-    btnView.addEventListener('click', () => {
-      alert(`Detalhes de ${coll?.nome || mat}:\n\n` +
-        data.items.map(it => 
-          `${it.date} - ${it.interval}: ${formatMinutes(it.heMinutes)}`
-        ).join('\n')
-      );
-    });
-    
-    actions.appendChild(btnEdit);
-    actions.appendChild(btnRemove);
-    actions.appendChild(btnView);
-    card.appendChild(actions);
-
-    container.appendChild(card);
+    return {
+      matricula: mat,
+      coll,
+      data,
+      coordinatorId,
+      supervisorId,
+      coordinatorName,
+      supervisorName,
+      searchText: normalizeText(`${coll?.nome || ''} ${mat} ${coordinatorName} ${supervisorName}`)
+    };
   });
+
+  const coordinatorOptions = Array.from(
+    assignedItems.reduce((map, item) => {
+      if (!map.has(item.coordinatorId)) {
+        map.set(item.coordinatorId, item.coordinatorName);
+      }
+      return map;
+    }, new Map())
+  ).sort((a, b) => a[1].localeCompare(b[1], 'pt-BR', { sensitivity: 'base' }));
+
+  const filtersCard = document.createElement('div');
+  filtersCard.className = 'assigned-filters';
+
+  let selectedCoordinator = 'all';
+  let selectedSupervisor = 'all';
+  let searchTerm = '';
+
+  const coordinatorGroup = document.createElement('div');
+  coordinatorGroup.className = 'assigned-filter-group';
+  const coordinatorLabel = document.createElement('label');
+  coordinatorLabel.textContent = 'Coordenador';
+  const coordinatorSelect = document.createElement('select');
+  coordinatorSelect.className = 'assigned-filter-select';
+
+  const supervisorGroup = document.createElement('div');
+  supervisorGroup.className = 'assigned-filter-group';
+  const supervisorLabel = document.createElement('label');
+  supervisorLabel.textContent = 'Supervisor';
+  const supervisorSelect = document.createElement('select');
+  supervisorSelect.className = 'assigned-filter-select';
+
+  const searchGroup = document.createElement('div');
+  searchGroup.className = 'assigned-filter-group';
+  const searchLabel = document.createElement('label');
+  searchLabel.textContent = 'Buscar';
+  const searchInput = document.createElement('input');
+  searchInput.type = 'search';
+  searchInput.placeholder = 'Nome, matrícula ou hierarquia';
+  searchInput.className = 'assigned-filter-search';
+
+  const actionsGroup = document.createElement('div');
+  actionsGroup.className = 'assigned-filter-actions';
+  const clearButton = document.createElement('button');
+  clearButton.type = 'button';
+  clearButton.className = 'assigned-filter-clear';
+  clearButton.textContent = 'Limpar filtros';
+
+  const assignedGrid = document.createElement('div');
+  assignedGrid.className = 'assigned-grid';
+
+  function populateCoordinatorOptions() {
+    coordinatorSelect.innerHTML = '';
+    const allOption = document.createElement('option');
+    allOption.value = 'all';
+    allOption.textContent = 'Todos os coordenadores';
+    coordinatorSelect.appendChild(allOption);
+
+    coordinatorOptions.forEach(([value, label]) => {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = label;
+      coordinatorSelect.appendChild(option);
+    });
+
+    coordinatorSelect.value = selectedCoordinator;
+  }
+
+  function getSupervisorOptions(coordId) {
+    const optionsMap = assignedItems.reduce((map, item) => {
+      if (coordId !== 'all' && item.coordinatorId !== coordId) return map;
+      if (!map.has(item.supervisorId)) {
+        map.set(item.supervisorId, item.supervisorName);
+      }
+      return map;
+    }, new Map());
+
+    return Array.from(optionsMap.entries()).sort((a, b) =>
+      a[1].localeCompare(b[1], 'pt-BR', { sensitivity: 'base' })
+    );
+  }
+
+  function populateSupervisorOptions() {
+    const options = getSupervisorOptions(selectedCoordinator);
+    supervisorSelect.innerHTML = '';
+
+    const allOption = document.createElement('option');
+    allOption.value = 'all';
+    allOption.textContent = 'Todos os supervisores';
+    supervisorSelect.appendChild(allOption);
+
+    options.forEach(([value, label]) => {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = label;
+      supervisorSelect.appendChild(option);
+    });
+
+    if (selectedSupervisor !== 'all' && !options.some(([value]) => value === selectedSupervisor)) {
+      selectedSupervisor = 'all';
+    }
+
+    supervisorSelect.value = selectedSupervisor;
+  }
+
+  function renderCards() {
+    assignedGrid.innerHTML = '';
+
+    const filteredItems = assignedItems.filter((item) => {
+      if (selectedCoordinator !== 'all' && item.coordinatorId !== selectedCoordinator) return false;
+      if (selectedSupervisor !== 'all' && item.supervisorId !== selectedSupervisor) return false;
+      if (searchTerm && !item.searchText.includes(searchTerm)) return false;
+      return true;
+    });
+
+    if (!filteredItems.length) {
+      const empty = document.createElement('div');
+      empty.className = 'assigned-empty';
+      empty.innerHTML = `
+        <div class="assigned-empty-title">Nenhum colaborador encontrado</div>
+        <div class="assigned-empty-subtitle">Ajuste os filtros ou limpe para visualizar novamente.</div>
+      `;
+      assignedGrid.appendChild(empty);
+      return;
+    }
+
+    filteredItems.forEach((item) => {
+      const { coll, data, matricula } = item;
+
+      const card = document.createElement('div');
+      card.className = 'assigned-card';
+
+      const header = document.createElement('div');
+      header.className = 'assigned-header';
+
+      const avatar = document.createElement('div');
+      avatar.className = 'assigned-avatar';
+      const avatarSource = coll?.nome || `Colaborador ${matricula}`;
+      avatar.textContent = avatarSource.trim().charAt(0).toUpperCase() || 'C';
+
+      const info = document.createElement('div');
+      info.className = 'assigned-info';
+
+      const name = document.createElement('div');
+      name.className = 'assigned-name';
+      name.textContent = coll?.nome || `Colaborador ${matricula}`;
+
+      const meta = document.createElement('div');
+      meta.className = 'assigned-meta';
+      meta.innerHTML = `
+        <div>Matrícula: <strong>${matricula}</strong></div>
+        <div>${data.items.length} intervalo(s) atribuído(s)</div>
+      `;
+
+      const hierarchy = document.createElement('div');
+      hierarchy.className = 'assigned-hierarchy';
+      hierarchy.innerHTML = `
+        <span class="hierarchy-node">${item.coordinatorName}</span>
+        <span class="hierarchy-separator">›</span>
+        <span class="hierarchy-node">${item.supervisorName}</span>
+      `;
+
+      info.appendChild(name);
+      info.appendChild(meta);
+      info.appendChild(hierarchy);
+      header.appendChild(avatar);
+      header.appendChild(info);
+      card.appendChild(header);
+
+      const stats = document.createElement('div');
+      stats.className = 'assigned-stats';
+
+      const average = data.items.length > 0
+        ? Math.round(data.totalMinutes / data.items.length)
+        : 0;
+
+      const statItems = [
+        { label: 'HE Total', value: formatMinutes(data.totalMinutes) },
+        { label: 'Intervalos', value: data.items.length },
+        { label: 'Média/HE', value: formatMinutes(average) }
+      ];
+
+      statItems.forEach((s) => {
+        const stat = document.createElement('div');
+        stat.className = 'assigned-stat';
+        const value = document.createElement('div');
+        value.className = 'assigned-stat-value';
+        value.textContent = String(s.value);
+        const label = document.createElement('div');
+        label.className = 'assigned-stat-label';
+        label.textContent = s.label;
+        stat.appendChild(value);
+        stat.appendChild(label);
+        stats.appendChild(stat);
+      });
+
+      card.appendChild(stats);
+
+      const intervals = document.createElement('div');
+      intervals.className = 'assigned-intervals';
+
+      data.items.slice(0, 3).forEach((it) => {
+        const interval = document.createElement('div');
+        interval.className = 'interval-item';
+
+        const time = document.createElement('div');
+        time.className = 'interval-time';
+        time.textContent = `${it.date} - ${it.interval}`;
+
+        const minutes = document.createElement('div');
+        minutes.className = 'interval-minutes';
+        minutes.textContent = formatMinutes(it.heMinutes);
+
+        interval.appendChild(time);
+        interval.appendChild(minutes);
+        intervals.appendChild(interval);
+      });
+
+      if (data.items.length > 3) {
+        const more = document.createElement('div');
+        more.className = 'interval-item';
+        more.style.textAlign = 'center';
+        more.style.color = 'var(--text-muted)';
+        more.textContent = `... e mais ${data.items.length - 3} intervalo(s)`;
+        intervals.appendChild(more);
+      }
+
+      card.appendChild(intervals);
+
+      const actions = document.createElement('div');
+      actions.className = 'assigned-actions';
+
+      const btnEdit = document.createElement('button');
+      btnEdit.className = 'btn btn-warning';
+      btnEdit.innerHTML = '✏️ Editar';
+      btnEdit.addEventListener('click', () => {
+        if (data.items.length > 0) {
+          editAssignment(data.items[0].recId, data.items[0].assignmentId, matricula);
+        }
+      });
+
+      const btnRemove = document.createElement('button');
+      btnRemove.className = 'btn btn-danger';
+      btnRemove.innerHTML = ' Remover';
+      btnRemove.addEventListener('click', () => {
+        if (confirm(`Remover todas as atribuições de ${coll?.nome || matricula}?`)) {
+          data.items.forEach((it) => {
+            removeAssignment(it.recId, it.assignmentId, matricula);
+          });
+        }
+      });
+
+      const btnView = document.createElement('button');
+      btnView.className = 'btn btn-secondary';
+      btnView.innerHTML = ' Detalhes';
+      btnView.addEventListener('click', () => {
+        alert(`Detalhes de ${coll?.nome || matricula}:\n\n` +
+          data.items.map(it =>
+            `${it.date} - ${it.interval}: ${formatMinutes(it.heMinutes)}`
+          ).join('\n')
+        );
+      });
+
+      actions.appendChild(btnEdit);
+      actions.appendChild(btnRemove);
+      actions.appendChild(btnView);
+      card.appendChild(actions);
+
+      assignedGrid.appendChild(card);
+    });
+  }
+
+  populateCoordinatorOptions();
+  populateSupervisorOptions();
+
+  coordinatorSelect.addEventListener('change', () => {
+    selectedCoordinator = coordinatorSelect.value;
+    selectedSupervisor = 'all';
+    populateSupervisorOptions();
+    renderCards();
+  });
+
+  supervisorSelect.addEventListener('change', () => {
+    selectedSupervisor = supervisorSelect.value;
+    renderCards();
+  });
+
+  searchInput.addEventListener('input', () => {
+    searchTerm = normalizeText(searchInput.value);
+    renderCards();
+  });
+
+  clearButton.addEventListener('click', () => {
+    selectedCoordinator = 'all';
+    selectedSupervisor = 'all';
+    searchTerm = '';
+    coordinatorSelect.value = 'all';
+    populateSupervisorOptions();
+    supervisorSelect.value = 'all';
+    searchInput.value = '';
+    renderCards();
+  });
+
+  coordinatorGroup.appendChild(coordinatorLabel);
+  coordinatorGroup.appendChild(coordinatorSelect);
+  supervisorGroup.appendChild(supervisorLabel);
+  supervisorGroup.appendChild(supervisorSelect);
+  searchGroup.appendChild(searchLabel);
+  searchGroup.appendChild(searchInput);
+  actionsGroup.appendChild(clearButton);
+
+  filtersCard.appendChild(coordinatorGroup);
+  filtersCard.appendChild(supervisorGroup);
+  filtersCard.appendChild(searchGroup);
+  filtersCard.appendChild(actionsGroup);
+
+  container.appendChild(filtersCard);
+  container.appendChild(assignedGrid);
+
+  renderCards();
 }
 
 /* ---------- NOVA FUNÇÃO: Relatório de HE ---------- */
@@ -602,6 +822,7 @@ function openAssignModal(groupKey) {
 
   // LEFT: Turnos organizados em accordion
   const left = document.createElement('div');
+  left.className = 'modal-accordion-column';
 
   const accordion = document.createElement('div');
   accordion.className = 'shifts-accordion';
@@ -747,6 +968,12 @@ function openAssignModal(groupKey) {
   });
 
   left.appendChild(accordion);
+
+  const selectionSummary = document.createElement('div');
+  selectionSummary.className = 'selection-summary-enhanced';
+  selectionSummary.id = 'selection-summary-enhanced';
+  left.appendChild(selectionSummary);
+
   main.appendChild(left);
 
   // RIGHT: Lista de colaboradores com filtros
@@ -983,12 +1210,6 @@ function openAssignModal(groupKey) {
   right.appendChild(collCard);
   main.appendChild(right);
   content.appendChild(main);
-
-  // Resumo da Seleção
-  const selectionSummary = document.createElement('div');
-  selectionSummary.className = 'selection-summary-enhanced';
-  selectionSummary.id = 'selection-summary-enhanced';
-  content.appendChild(selectionSummary);
 
   function updateSelectionSummary() {
     const selectedIntervals = Array.from(content.querySelectorAll('.interval-checkbox:checked'));

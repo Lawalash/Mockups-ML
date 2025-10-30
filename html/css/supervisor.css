@@ -410,6 +410,73 @@ body {
 }
 
 /* ===== COLABORADORES ATRIBUÍDOS - NOVO DESIGN ===== */
+
+.assigned-filters {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border-light);
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.assigned-filter-group {
+  flex: 1 1 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.assigned-filter-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.assigned-filter-select,
+.assigned-filter-search {
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background: #fff;
+}
+
+.assigned-filter-select:focus,
+.assigned-filter-search:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+}
+
+.assigned-filter-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex: 0 0 auto;
+}
+
+.assigned-filter-clear {
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  background: transparent;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.assigned-filter-clear:hover {
+  background: var(--primary-bg);
+  color: var(--primary);
+  border-color: var(--primary-light);
+}
+
 .assigned-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -478,6 +545,26 @@ body {
   color: var(--text-muted);
 }
 
+.assigned-hierarchy {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.hierarchy-node {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.hierarchy-separator {
+  color: var(--border);
+  font-weight: 700;
+}
+
 .assigned-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -518,6 +605,44 @@ body {
   border-radius: var(--radius-sm);
   margin-bottom: 0.5rem;
   border-left: 3px solid var(--success);
+}
+
+.assigned-empty {
+  grid-column: 1 / -1;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  border-radius: var(--radius);
+  border: 1px dashed var(--border);
+  background: var(--primary-bg);
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.assigned-empty-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.assigned-empty-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 1024px) {
+  .assigned-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .assigned-filter-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
 }
 
 .interval-time {
@@ -782,6 +907,16 @@ body {
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
+}
+
+.modal-accordion-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.modal-accordion-column .selection-summary-enhanced {
+  margin-top: 0;
 }
 
 /* Accordion para turnos */
