@@ -6,7 +6,6 @@
   <title>TABI - DASHBOARD OPERACIONAL</title>
   <link rel="stylesheet" href="css/common.css">
   <link rel="stylesheet" href="css/dashboard.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 </head>
 <body>
   <header class="header">
@@ -65,112 +64,374 @@
     </div>
 
     <!-- Conteúdo Principal -->
-    <div id="dashboard-content" style="display:none">
-      <!-- KPIs -->
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <div class="kpi-icon">⏱️</div>
-          <div class="kpi-content">
-            <div class="kpi-value" id="kpi-total-he">0h</div>
-            <div class="kpi-label">HE Total Planejada</div>
-          </div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon">👥</div>
-          <div class="kpi-content">
-            <div class="kpi-value" id="kpi-colaboradores">0</div>
-            <div class="kpi-label">Colaboradores com HE</div>
-          </div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon">✅</div>
-          <div class="kpi-content">
-            <div class="kpi-value" id="kpi-taxa-conversao">0%</div>
-            <div class="kpi-label">Taxa de Conversão</div>
-          </div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon">📈</div>
-          <div class="kpi-content">
-            <div class="kpi-value" id="kpi-efficiency">0%</div>
-            <div class="kpi-label">Eficiência Operacional</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Gráficos -->
-      <div class="charts-grid">
-        <div class="chart-card full-width">
-          <div class="chart-header">
-            <h3>Distribuição de HE por Segmento</h3>
-          </div>
-          <div class="chart-container">
-            <canvas id="chart_he_segmento"></canvas>
-          </div>
-        </div>
-
-        <div class="chart-card">
-          <div class="chart-header">
-            <h3>Evolução Diária - HE</h3>
-          </div>
-          <div class="chart-container">
-            <canvas id="chart_evolucao_diaria"></canvas>
-          </div>
-        </div>
-
-        <div class="chart-card">
-          <div class="chart-header">
-            <h3>Picos de Chamadas por Turno</h3>
-          </div>
-          <div class="chart-container">
-            <canvas id="chart_picos_chamadas"></canvas>
-          </div>
-        </div>
-
-        <div class="chart-card">
-          <div class="chart-header">
-            <h3>Status de Atribuição</h3>
-          </div>
-          <div class="chart-container">
-            <canvas id="chart_status_atribuicao"></canvas>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tabela -->
+    <div id="dashboard-content">
       <div class="card">
         <div class="card-header">
-          <h3>Detalhamento por Colaborador</h3>
+          <div>
+            <h3 class="card-title">KPIs de Planejamento e Demanda</h3>
+            <p class="card-subtitle">Resumo das solicitações publicadas de HE por operação, turno e status.</p>
+          </div>
+          <span class="badge badge-validated">Atualizado em 12/05/2024 08:00</span>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon">⏱️</div>
+            <div class="kpi-content">
+              <div class="kpi-value">8.240 min</div>
+              <div class="kpi-label">HE Total Planejada (137h 20min)</div>
+              <span class="kpi-trend positive">+6% vs. semana anterior</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon">👥</div>
+            <div class="kpi-content">
+              <div class="kpi-value">132 / 118</div>
+              <div class="kpi-label">HC Solicitado x Disponível</div>
+              <span class="kpi-trend negative">-14 vagas livres</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon">🕒</div>
+            <div class="kpi-content">
+              <div class="kpi-value">42% / 38% / 20%</div>
+              <div class="kpi-label">Distribuição por turno (M/T/N)</div>
+              <span class="kpi-trend positive">Turno da manhã concentra pico</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon">📬</div>
+            <div class="kpi-content">
+              <div class="kpi-value">48</div>
+              <div class="kpi-label">Publicações na Janela Selecionada</div>
+              <span class="kpi-trend positive">12 com status validado</span>
+            </div>
+          </div>
         </div>
         <div class="table-container">
-          <table class="data-table" id="table-detalhes">
+          <table class="data-table">
             <thead>
               <tr>
+                <th>Operação</th>
+                <th>Segmento</th>
+                <th>HE Planejada</th>
+                <th>HC Solicitado</th>
+                <th>Meta por HC</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>TIM</td>
+                <td>CONTROLE FRONT MOC</td>
+                <td>3.200 min</td>
+                <td>44</td>
+                <td>73 min</td>
+              </tr>
+              <tr>
+                <td>VIVO</td>
+                <td>CONTROLE GRE BH</td>
+                <td>2.800 min</td>
+                <td>38</td>
+                <td>74 min</td>
+              </tr>
+              <tr>
+                <td>CLARO</td>
+                <td>PRÉ PAGO ESE BH</td>
+                <td>1.900 min</td>
+                <td>32</td>
+                <td>59 min</td>
+              </tr>
+              <tr>
+                <td>LABS</td>
+                <td>LABS LAB</td>
+                <td>1.200 min</td>
+                <td>18</td>
+                <td>67 min</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h3 class="card-title">KPIs de Alocação e Execução</h3>
+            <p class="card-subtitle">Indicadores de conversão da demanda em atribuições concluídas.</p>
+          </div>
+          <span class="badge badge-published">Backlog atual: 3 solicitações</span>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon">✅</div>
+            <div class="kpi-content">
+              <div class="kpi-value">7.540 min</div>
+              <div class="kpi-label">HE Atribuída</div>
+              <span class="kpi-trend positive">92% da meta planejada</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon">📊</div>
+            <div class="kpi-content">
+              <div class="kpi-value">91%</div>
+              <div class="kpi-label">Taxa de Conversão</div>
+              <span class="kpi-trend positive">+4 p.p. nas últimas 24h</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon">⚖️</div>
+            <div class="kpi-content">
+              <div class="kpi-value">700 min</div>
+              <div class="kpi-label">Saldo de HE a Alocar</div>
+              <span class="kpi-trend negative">Concentrado no turno noite</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon">⏳</div>
+            <div class="kpi-content">
+              <div class="kpi-value">2h12</div>
+              <div class="kpi-label">Lead Time de Atribuição</div>
+              <span class="kpi-trend positive">SLA &lt; 3h atendido</span>
+            </div>
+          </div>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Segmento</th>
+                <th>HE Planejada</th>
+                <th>HE Atribuída</th>
+                <th>Conversão</th>
+                <th>Saldo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>CONTROLE FRONT MOC</td>
+                <td>3.200 min</td>
+                <td>2.950 min</td>
+                <td>92%</td>
+                <td>250 min</td>
+              </tr>
+              <tr>
+                <td>CONTROLE GRE BH</td>
+                <td>2.800 min</td>
+                <td>2.600 min</td>
+                <td>93%</td>
+                <td>200 min</td>
+              </tr>
+              <tr>
+                <td>PRÉ PAGO ESE BH</td>
+                <td>1.900 min</td>
+                <td>1.750 min</td>
+                <td>92%</td>
+                <td>150 min</td>
+              </tr>
+              <tr>
+                <td>LABS LAB</td>
+                <td>1.200 min</td>
+                <td>950 min</td>
+                <td>79%</td>
+                <td>250 min</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h3 class="card-title">KPIs por Colaborador e Equipe</h3>
+            <p class="card-subtitle">Visão consolidada da carga individual e dos times de atendimento.</p>
+          </div>
+          <span class="badge">Top Supervisão: Ana Moreira</span>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon">🏅</div>
+            <div class="kpi-content">
+              <div class="kpi-value">104%</div>
+              <div class="kpi-label">Eficiência Média Realizada</div>
+              <span class="kpi-trend positive">+9 p.p. sobre a meta</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon">🧑‍💼</div>
+            <div class="kpi-content">
+              <div class="kpi-value">68</div>
+              <div class="kpi-label">Colaboradores com HE ativa</div>
+              <span class="kpi-trend positive">83% elegíveis</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon">📅</div>
+            <div class="kpi-content">
+              <div class="kpi-value">2,6 turnos</div>
+              <div class="kpi-label">Média de turnos por colaborador</div>
+              <span class="kpi-trend positive">+0,4 vs. última semana</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon">📉</div>
+            <div class="kpi-content">
+              <div class="kpi-value">12%</div>
+              <div class="kpi-label">Colaboradores com restrição</div>
+              <span class="kpi-trend negative">Banco de horas crítico</span>
+            </div>
+          </div>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Supervisor</th>
                 <th>Colaborador</th>
                 <th>Matrícula</th>
                 <th>HE Atribuída</th>
                 <th>HE Realizada</th>
-                <th>Diferença</th>
                 <th>Eficiência</th>
-                <th>Status</th>
+                <th>Turnos</th>
               </tr>
             </thead>
-            <tbody id="table-detalhes-body">
+            <tbody>
+              <tr>
+                <td>Ana Moreira</td>
+                <td>Lucas Prado</td>
+                <td>583421</td>
+                <td>210 min</td>
+                <td>232 min</td>
+                <td>110%</td>
+                <td>3</td>
+              </tr>
+              <tr>
+                <td>Ana Moreira</td>
+                <td>Juliana Freitas</td>
+                <td>571298</td>
+                <td>195 min</td>
+                <td>184 min</td>
+                <td>94%</td>
+                <td>2</td>
+              </tr>
+              <tr>
+                <td>Marcos Lima</td>
+                <td>Felipe Castro</td>
+                <td>564109</td>
+                <td>180 min</td>
+                <td>206 min</td>
+                <td>114%</td>
+                <td>3</td>
+              </tr>
+              <tr>
+                <td>Marcos Lima</td>
+                <td>Maria Ribeiro</td>
+                <td>590014</td>
+                <td>160 min</td>
+                <td>148 min</td>
+                <td>93%</td>
+                <td>2</td>
+              </tr>
+              <tr>
+                <td>Carla Souza</td>
+                <td>Renato Farias</td>
+                <td>552843</td>
+                <td>175 min</td>
+                <td>190 min</td>
+                <td>108%</td>
+                <td>3</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h3 class="card-title">KPIs de Processo e Governança</h3>
+            <p class="card-subtitle">Monitore SLAs de validação, notificações e saúde do fluxo.</p>
+          </div>
+          <span class="badge badge-draft">Último reset: 11/05/2024 19:45</span>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon">📌</div>
+            <div class="kpi-content">
+              <div class="kpi-value">38 / 7 / 3</div>
+              <div class="kpi-label">Pipeline (Rasc./Pub./Val.)</div>
+              <span class="kpi-trend positive">76% dentro do prazo</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon">🛡️</div>
+            <div class="kpi-content">
+              <div class="kpi-value">1h48</div>
+              <div class="kpi-label">SLA médio de validação</div>
+              <span class="kpi-trend positive">Meta de 2h cumprida</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon">🔔</div>
+            <div class="kpi-content">
+              <div class="kpi-value">5</div>
+              <div class="kpi-label">Notificações pendentes</div>
+              <span class="kpi-trend negative">2 críticas aguardando ação</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon">🗂️</div>
+            <div class="kpi-content">
+              <div class="kpi-value">124</div>
+              <div class="kpi-label">Eventos de auditoria</div>
+              <span class="kpi-trend positive">100% rastreáveis</span>
+            </div>
+          </div>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Indicador</th>
+                <th>Resultado</th>
+                <th>Referência</th>
+                <th>Observação</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Tempo até publicação</td>
+                <td>5h36</td>
+                <td>Meta 6h</td>
+                <td>Melhoria contínua após automatização de validações.</td>
+              </tr>
+              <tr>
+                <td>Validações por coordenador</td>
+                <td>14 Ana / 11 Marcos / 9 Carla</td>
+                <td>Distribuição homogênea</td>
+                <td>Sem gargalos de aprovação identificados.</td>
+              </tr>
+              <tr>
+                <td>Taxa de adoção da plataforma</td>
+                <td>92% dos supervisores ativos</td>
+                <td>Meta 90%</td>
+                <td>Logs mostram 312 acessos únicos na semana.</td>
+              </tr>
+              <tr>
+                <td>Alertas tratados</td>
+                <td>63%</td>
+                <td>Meta 80%</td>
+                <td>Pendências concentradas no segmento LABS LAB.</td>
+              </tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
-
-    <!-- Estado Vazio -->
-    <div id="dashboard-empty" class="card empty-state">
-      <div class="empty-state-icon">📊</div>
-      <div class="empty-state-text">Dashboard Operacional</div>
-      <div class="empty-state-subtext">Aplique os filtros ou carregue dados de demonstração para visualizar</div>
-    </div>
   </main>
 
-  <script type="module" src="js/common.js"></script>
-  <script type="module" src="js/dashboard.js"></script>
+  <script type="module">
+    import { initializeClock } from './js/common.js';
+    initializeClock();
+  </script>
 </body>
 </html>
